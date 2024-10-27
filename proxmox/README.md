@@ -4,4 +4,4 @@ Proxmox Virtual Environment (VE) is booted on the Intel NUC. The router uses IP 
 
 ## Connectivity troubleshooting
 
-Make sure that the network interface that connects to Wi-Fi is not configured in `/etc/network/interfaces` (comment out conflicting interfaces). Configure a static IP address using `nmcli connection modify`. The resulting config can be observed in `/etc/NetworkManager/system-connections/`
+Make sure that the network interface that connects to Wi-Fi is not configured in `/etc/network/interfaces` (comment out conflicting interfaces). Configure a static IP address using `nmcli connection modify`. The resulting config can be observed in `/etc/NetworkManager/system-connections/`. It might be necessary to `sudo systemctl restart NetworkManager`.
