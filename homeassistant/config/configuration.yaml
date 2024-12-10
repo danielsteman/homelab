@@ -9,6 +9,10 @@ homeassistant:
   currency: EUR 
   time_zone: Europe/Amsterdam
 
+http:
+  ssl_certificate: /ssl/live/${SUBDOMAINS}.duckdns.org/fullchain.pem
+  ssl_key: /ssl/live/${SUBDOMAINS}.duckdns.org/privkey.pem
+
 # Add specific integrations (if needed)
 automation: !include automations.yaml
 script: !include scripts.yaml

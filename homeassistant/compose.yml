@@ -4,6 +4,7 @@ services:
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
       - ./config:/config
+      - ./letsencrypt:/ssl
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
     restart: unless-stopped
@@ -11,4 +12,38 @@ services:
     network_mode: host
     environment:
       - HASSIO_CONFIG=/config
+
+  duckdns:
+    image: linuxserver/duckdns
+    container_name: duckdns
+    restart: unless-stopped
+    environment:
+      - SUBDOMAINS=${SUBDOMAINS}
+      - TOKEN=${TOKEN}
+      - LOG_FILE=true
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+      - ./letsencrypt-logs:/var/log/letsencrypt
+    command:
+      - certonly
+      - --non-interactive
+      - --agree-tos
+      - --standalone
+      - --preferred-challenges http
+      - --email daniel-steman@live.nl
+      - -d ${SUBDOMAINS}.duckdns.org
+    ports:
+      - "80:80"
+
+  renew_cert:
+    image: certbot/certbot
+    container_name: renew_cert
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+    entrypoint: ["/bin/sh", "-c"]
+    command: "certbot renew --quiet && docker restart homeassistant"
 
