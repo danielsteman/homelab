@@ -1,0 +1,18 @@
+default_config:
+
+homeassistant:
+  name: Bistro Tranquilo
+  latitude: 52.359969
+  longitude: 4.914359
+  elevation: 24
+  unit_system: metric
+  currency: EUR 
+  time_zone: Europe/Amsterdam
+
+# Add specific integrations (if needed)
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+frontend:
+  themes: !include_dir_merge_named themes
+
