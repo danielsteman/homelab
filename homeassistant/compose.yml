@@ -52,6 +52,8 @@ services:
       - "traefik.http.routers.ha-secure.entrypoints=https"
       - "traefik.http.routers.ha-secure.tls.certresolver=cloudflare"
       - "traefik.http.services.ha.loadbalancer.server.port=8123"
+    ports:
+      - "8123:8123"
 
   #######################################################
   #  Cloudflare DDNS
