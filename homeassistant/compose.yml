@@ -11,6 +11,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/acme.json:/acme.json
@@ -19,6 +20,7 @@ services:
       - CLOUDFLARE_DNS_API_TOKEN=${CF_API_TOKEN} # Add your Cloudflare API Token here
     command:
       - "--api.dashboard=true"
+      - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.network=proxy"
       - "--entrypoints.http.address=:80"
@@ -29,6 +31,9 @@ services:
       - "--certificatesresolvers.cloudflare.acme.storage=/acme.json"
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.local`)"
+      - "traefik.http.routers.traefik.entrypoints=traefik"
+      - "traefik.http.routers.traefik.service=api@internal"
 
   #######################################################
   #  Home Assistant
@@ -77,5 +82,4 @@ services:
 networks:
   proxy:
     external: true
-    # Or remove `external: true` to let Docker Compose create the network
 
