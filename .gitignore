@@ -56,3 +56,5 @@ google*.deb
 **.secret
 **/.env
 **/home-assistant_v2.db*
+**.log*
+homeassistant/letsencrypt
