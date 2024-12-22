@@ -1,49 +1,79 @@
 services:
+  #######################################################
+  #  Traefik Reverse Proxy
+  #######################################################
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: unless-stopped
+    networks:
+      - proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/acme.json:/acme.json
+      - ./traefik/traefik.yml:/traefik.yml:ro
+    environment:
+      - CLOUDFLARE_DNS_API_TOKEN=${CF_API_TOKEN} # Add your Cloudflare API Token here
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.network=proxy"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.cloudflare.acme.email=daniel-steman@live.nl"
+      - "--certificatesresolvers.cloudflare.acme.storage=/acme.json"
+    labels:
+      - "traefik.enable=true"
+
+  #######################################################
+  #  Home Assistant
+  #######################################################
   homeassistant:
-    container_name: homeassistant
     image: "ghcr.io/home-assistant/home-assistant:stable"
+    container_name: homeassistant
+    restart: unless-stopped
+    networks:
+      - proxy
+    environment:
+      - HASSIO_CONFIG=/config
     volumes:
       - ./config:/config
       - ./letsencrypt:/ssl
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
-    restart: unless-stopped
-    privileged: true
-    network_mode: host
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ha-secure.rule=Host(`homelab.danielsteman.com`)"
+      - "traefik.http.routers.ha-secure.entrypoints=https"
+      - "traefik.http.routers.ha-secure.tls.certresolver=cloudflare"
+      - "traefik.http.services.ha.loadbalancer.server.port=8123"
+
+  #######################################################
+  #  Cloudflare DDNS
+  #######################################################
+  cloudflare-ddns:
+    image: oznu/cloudflare-ddns:latest
+    container_name: cloudflare-ddns
+    restart: always
     environment:
-      - HASSIO_CONFIG=/config
+      - API_KEY=${CF_API_TOKEN}       # Cloudflare API Token with DNS edit permissions
+      - ZONE=danielsteman.com          # Your Cloudflare Zone
+      - SUBDOMAIN=homelab              # Subdomain to update (homelab.danielsteman.com)
+      - PROXIED=true                   # Set to true to enable Cloudflare proxy (orange cloud)
+      # Optional parameters:
+      # - RRTYPE=A                      # Defaults to A for IPv4
+      # - CRON=*/5 * * * *               # Defaults to every 5 minutes
+    networks:
+      - proxy
 
-  duckdns:
-    image: linuxserver/duckdns
-    container_name: duckdns
-    restart: unless-stopped
-    environment:
-      - SUBDOMAINS=${SUBDOMAINS}
-      - TOKEN=${TOKEN}
-      - LOG_FILE=true
 
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./letsencrypt:/etc/letsencrypt
-      - ./letsencrypt-logs:/var/log/letsencrypt
-    command:
-      - certonly
-      - --agree-tos
-      - --preferred-challenges
-      - dns
-      - --manual
-      - --email
-      - daniel-steman@live.nl
-      - -d
-      - ${SUBDOMAINS}.duckdns.org
-
-  renew_cert:
-    image: certbot/certbot
-    container_name: renew_cert
-    volumes:
-      - ./letsencrypt:/etc/letsencrypt
-    entrypoint: ["/bin/sh", "-c"]
-    command: "certbot renew --quiet && docker restart homeassistant"
+networks:
+  proxy:
+    external: true
+    # Or remove `external: true` to let Docker Compose create the network
 

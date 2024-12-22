@@ -9,10 +9,6 @@ homeassistant:
   currency: EUR 
   time_zone: Europe/Amsterdam
 
-http:
-  ssl_certificate: /ssl/live/${SUBDOMAINS}.duckdns.org/fullchain.pem
-  ssl_key: /ssl/live/${SUBDOMAINS}.duckdns.org/privkey.pem
-
 # Add specific integrations (if needed)
 automation: !include automations.yaml
 script: !include scripts.yaml
@@ -20,3 +16,10 @@ scene: !include scenes.yaml
 frontend:
   themes: !include_dir_merge_named themes
 
+http:
+  # Enables support for using a reverse proxy (e.g., Traefik)
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+    - ::1
+    - 192.168.68.251  # Replace with your Docker host's internal IP
