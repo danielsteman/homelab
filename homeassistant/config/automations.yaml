@@ -1,0 +1,61 @@
+- id: '1734901730496'
+  alias: Turn on bedroom lights
+  description: ''
+  triggers:
+  - device_id: 90f8345178718fd833a672963e7a4852
+    domain: hue
+    type: initial_press
+    subtype: 1
+    unique_id: 14fa0836-5494-4c29-9620-b7c649562b6c
+    metadata: {}
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      transition: 1
+      kelvin: 2944
+      brightness_pct: 50
+    target:
+      area_id: bedroom
+  mode: single
+- id: '1734901826065'
+  alias: Turn off bedroom lights
+  description: ''
+  triggers:
+  - device_id: 90f8345178718fd833a672963e7a4852
+    domain: hue
+    type: initial_press
+    subtype: 4
+    unique_id: dacfe14c-50f4-4ebe-8f97-b8dcd7d8c732
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.turn_off
+    metadata: {}
+    data:
+      transition: 1
+    target:
+      area_id: bedroom
+  mode: single
+- id: '1734902008292'
+  alias: Dim bedroom lights
+  description: ''
+  triggers:
+  - device_id: 90f8345178718fd833a672963e7a4852
+    domain: hue
+    type: initial_press
+    subtype: 3
+    unique_id: 2acb0b31-0da7-40a5-805a-b9acc4327403
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      brightness_step_pct: -10
+      kelvin: 3091
+    target:
+      area_id: bedroom
+  mode: single
