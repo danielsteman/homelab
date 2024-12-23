@@ -12,6 +12,7 @@ entryPoints:
 
 providers:
   docker:
+    endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
     network: proxy
 
@@ -25,4 +26,20 @@ certificatesResolvers:
         resolvers:
           - 1.1.1.1:53
           - 1.0.0.1:53
+
+http:
+  routers:
+    ha-secure:
+      rule: "Host(`homelab.danielsteman.com`)"
+      entryPoints:
+        - https
+      tls:
+        certResolver: cloudflare
+      service: ha
+
+  services:
+    ha:
+      loadBalancer:
+        servers:
+          - url: "http://homeassistant:8123"
 

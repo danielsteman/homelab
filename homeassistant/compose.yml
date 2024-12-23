@@ -18,22 +18,6 @@ services:
       - ./traefik/traefik.yml:/traefik.yml:ro
     environment:
       - CLOUDFLARE_DNS_API_TOKEN=${CF_API_TOKEN} # Add your Cloudflare API Token here
-    command:
-      - "--api.dashboard=true"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.network=proxy"
-      - "--entrypoints.http.address=:80"
-      - "--entrypoints.https.address=:443"
-      - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
-      - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
-      - "--certificatesresolvers.cloudflare.acme.email=daniel-steman@live.nl"
-      - "--certificatesresolvers.cloudflare.acme.storage=/acme.json"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.local`)"
-      - "traefik.http.routers.traefik.entrypoints=traefik"
-      - "traefik.http.routers.traefik.service=api@internal"
 
   #######################################################
   #  Home Assistant
