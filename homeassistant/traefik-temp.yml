@@ -1,7 +1,7 @@
----
 api:
   dashboard: true
   insecure: true
+
 entryPoints:
   http:
     address: ":80"
@@ -9,13 +9,13 @@ entryPoints:
     address: ":443"
   traefik:
     address: ":8080"
+
 providers:
-  file:
-    filename: "/traefik.yml"
-  #  docker:
-  #    endpoint: "unix:///var/run/docker.sock"
-  #    exposedByDefault: false
-  #    network: proxy
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: proxy
+
 certificatesResolvers:
   cloudflare:
     acme:
@@ -26,14 +26,8 @@ certificatesResolvers:
         resolvers:
           - 1.1.1.1:53
           - 1.0.0.1:53
+
 http:
-  middlewares:
-    custom-404:
-      errors:
-        status:
-          - "404"
-        service: error-page-service
-        query: "/error.html"
   routers:
     ha-secure:
       rule: "Host(`homelab.danielsteman.com`)"
@@ -42,11 +36,13 @@ http:
       tls:
         certResolver: cloudflare
       service: ha
+
     ha-fallback-http:
-      rule: "PathPrefix(`/`)"
+      rule: "HostRegexp(`{host:.*}`)"
       entryPoints:
         - http
       service: ha
+
     ha-fallback-https:
       rule: "HostRegexp(`{host:.*}`)"
       entryPoints:
@@ -54,15 +50,17 @@ http:
       tls:
         certResolver: cloudflare
       service: ha
+
   services:
     ha:
       loadBalancer:
         servers:
           - url: "http://homeassistant:8123"
-    error-page-service:
-      loadBalancer:
-        servers:
-          - url: "http://127.0.0.1:81"
+
 accessLog:
   filePath: "/logs/access.log"
   format: json
+
+log:
+  level: DEBUG
+

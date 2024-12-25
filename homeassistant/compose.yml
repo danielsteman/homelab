@@ -1,23 +1,37 @@
+version: "3.3"
 services:
   #######################################################
   #  Traefik Reverse Proxy
   #######################################################
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.2
     container_name: traefik
-    restart: unless-stopped
-    networks:
-      - proxy
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.http.address=:80"
+      - "--entryPoints.https.address=:443"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/acme.json:/acme.json
-      - ./traefik/traefik.yml:/traefik.yml:ro
+    networks:
+      - proxy
+      - default
     environment:
       - CLOUDFLARE_DNS_API_TOKEN=${CF_API_TOKEN} # Add your Cloudflare API Token here
+  whoami:
+    image: "traefik/whoami"
+    container_name: "simple-service"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.entrypoints=web"
+
 
   #######################################################
   #  Home Assistant
@@ -37,10 +51,8 @@ services:
       - /run/dbus:/run/dbus:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ha-secure.rule=Host(`homelab.danielsteman.com`)"
-      - "traefik.http.routers.ha-secure.entrypoints=https"
-      - "traefik.http.routers.ha-secure.tls.certresolver=cloudflare"
-      - "traefik.http.services.ha.loadbalancer.server.port=8123"
+      - "traefik.http.routers.homeassistant.rule=Host(`homelab.danielsteman.com`)"
+      - "traefik.http.routers.homeassistant.entrypoints=http"
     ports:
       - "8123:8123"
 
@@ -61,7 +73,6 @@ services:
       # - CRON=*/5 * * * *               # Defaults to every 5 minutes
     networks:
       - proxy
-
 
 networks:
   proxy:
