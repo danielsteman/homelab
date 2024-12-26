@@ -12,10 +12,10 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entryPoints.http.address=:80"
-      - "--entryPoints.https.address=:443"
+      # - "--entryPoints.https.address=:443"
     ports:
       - "80:80"
-      - "443:443"
+      # - "443:443"
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -30,8 +30,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
-      - "traefik.http.routers.whoami.entrypoints=web"
-
+      - "traefik.http.routers.whoami.entrypoints=http"
 
   #######################################################
   #  Home Assistant
@@ -51,7 +50,7 @@ services:
       - /run/dbus:/run/dbus:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.homeassistant.rule=Host(`homelab.danielsteman.com`)"
+      - "traefik.http.routers.homeassistant.rule=Host(`homelab.localhost`)"
       - "traefik.http.routers.homeassistant.entrypoints=http"
     ports:
       - "8123:8123"
@@ -64,10 +63,10 @@ services:
     container_name: cloudflare-ddns
     restart: always
     environment:
-      - API_KEY=${CF_API_TOKEN}       # Cloudflare API Token with DNS edit permissions
-      - ZONE=danielsteman.com          # Your Cloudflare Zone
-      - SUBDOMAIN=homelab              # Subdomain to update (homelab.danielsteman.com)
-      - PROXIED=true                   # Set to true to enable Cloudflare proxy (orange cloud)
+      - API_KEY=${CF_API_TOKEN} # Cloudflare API Token with DNS edit permissions
+      - ZONE=danielsteman.com # Your Cloudflare Zone
+      - SUBDOMAIN=homelab # Subdomain to update (homelab.danielsteman.com)
+      - PROXIED=true # Set to true to enable Cloudflare proxy (orange cloud)
       # Optional parameters:
       # - RRTYPE=A                      # Defaults to A for IPv4
       # - CRON=*/5 * * * *               # Defaults to every 5 minutes
@@ -77,4 +76,3 @@ services:
 networks:
   proxy:
     external: true
-

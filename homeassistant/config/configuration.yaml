@@ -6,7 +6,7 @@ homeassistant:
   longitude: 4.914359
   elevation: 24
   unit_system: metric
-  currency: EUR 
+  currency: EUR
   time_zone: Europe/Amsterdam
 
 # Add specific integrations (if needed)
@@ -22,5 +22,5 @@ http:
   trusted_proxies:
     - 127.0.0.1
     - ::1
-    - 192.168.68.251  # Replace with your Docker host's internal IP
-    - 172.19.0.3
+    - 192.168.68.251 # Replace with your Docker host's internal IP
+    - 172.20.0.0/16 # Docker proxy network
