@@ -7,18 +7,25 @@ services:
     image: traefik:v3.2
     container_name: traefik
     command:
-      #- "--log.level=DEBUG"
+      - "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entryPoints.http.address=:80"
       - "--entryPoints.https.address=:443"
+      # --- ACME Config (Cloudflare DNS challenge) ---
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1:53"
+      - "--certificatesresolvers.cloudflare.acme.email=YOUR_EMAIL@example.com"
+      - "--certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      # This volume stores your SSL certs (acme.json)
+      - ./letsencrypt:/letsencrypt
     networks:
       - proxy
       - default
@@ -29,7 +36,7 @@ services:
     container_name: "simple-service"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.cluster.fuck`)"
       - "traefik.http.routers.whoami.entrypoints=http"
 
   #######################################################
@@ -50,10 +57,25 @@ services:
       - /run/dbus:/run/dbus:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.homeassistant.rule=Host(`homelab.localhost`)"
-      - "traefik.http.routers.homeassistant.entrypoints=http"
-    ports:
-      - "8123:8123"
+
+      # Use HTTPS entrypoint
+      - 'traefik.http.routers.homeassistant.rule=Host("homelab.danielsteman.com")'
+      - "traefik.http.routers.homeassistant.entrypoints=https"
+      - "traefik.http.routers.homeassistant.tls=true"
+
+      # Specify the cert resolver (must match the name you used in Traefik command)
+      - "traefik.http.routers.homeassistant.tls.certresolver=cloudflare"
+
+      # Home Assistant by default listens on port 8123, so let Traefik know
+      - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
+  
+      # HTTP->HTTPS redirect:
+      - 'traefik.http.routers.ha-insecure.rule=Host("homelab.danielsteman.com")'
+      - "traefik.http.routers.ha-insecure.entrypoints=http"
+      - "traefik.http.routers.ha-insecure.middlewares=redirect-to-https"
+
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
 
   #######################################################
   #  Cloudflare DDNS
@@ -67,9 +89,6 @@ services:
       - ZONE=danielsteman.com # Your Cloudflare Zone
       - SUBDOMAIN=homelab # Subdomain to update (homelab.danielsteman.com)
       - PROXIED=true # Set to true to enable Cloudflare proxy (orange cloud)
-      # Optional parameters:
-      # - RRTYPE=A                      # Defaults to A for IPv4
-      # - CRON=*/5 * * * *               # Defaults to every 5 minutes
     networks:
       - proxy
 
