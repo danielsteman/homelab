@@ -2,6 +2,7 @@ default_config:
 
 homeassistant:
   name: Bistro Tranquilo
+  external_url: https://homelab.danielsteman.com
   latitude: 52.359969
   longitude: 4.914359
   elevation: 24
