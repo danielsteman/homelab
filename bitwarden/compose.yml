@@ -1,0 +1,31 @@
+---
+
+services:
+  bitwarden:
+    depends_on:
+      - db
+    env_file:
+      - settings.env
+    image: ${REGISTRY:-bitwarden}/self-host:${TAG:-beta}
+    restart: always
+    ports:
+      - "80:8081"
+      - "443:8443"
+    volumes:
+      - bitwarden:/etc/bitwarden
+      - logs:/var/log/bitwarden
+
+  db:
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    image: postgres:14
+    restart: always
+    volumes:
+      - data:/var/lib/postgresql/data
+
+volumes:
+  bitwarden:
+  logs:
+  data:
