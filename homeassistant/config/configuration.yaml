@@ -9,6 +9,9 @@ homeassistant:
   currency: EUR
   time_zone: Europe/Amsterdam
 
+  auth_mfa_modules:
+    - type: totp
+
 # Add specific integrations (if needed)
 automation: !include automations.yaml
 script: !include scripts.yaml
