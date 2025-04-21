@@ -55,6 +55,8 @@ services:
       - ./letsencrypt:/ssl
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
     labels:
       - "traefik.enable=true"
 
