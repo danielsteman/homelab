@@ -51,30 +51,28 @@
     trigger: device
   conditions: []
   actions:
+  - type: turn_off
+    device_id: c546a56d80b3fd5cf15c0223a650fd83
+    entity_id: 80c506fc513f99f8199274153a1be6bf
+    domain: light
   - action: light.turn_on
     metadata: {}
     data:
-      brightness_step_pct: -10
-      kelvin: 3091
+      kelvin: 2000
     target:
-      area_id: bedroom
+      device_id: b7dd841239a97ff298dc866b1eac5b6b
   mode: single
 - id: '1736409255297'
   alias: Switch on living room lights
   description: Switch on living room lights when there is no sun light
   triggers:
-  - trigger: zone
-    entity_id: person.daniel
-    zone: zone.home
-    event: enter
-  - trigger: zone
-    entity_id: person.angelique
-    zone: zone.home
-    event: enter
-  conditions:
-  - condition: sun
-    before: sunrise
-    after: sunset
+  - device_id: 0f1ac3694243722d548c2ba88a91828b
+    domain: hue
+    type: initial_press
+    subtype: 1
+    unique_id: cdbcdd56-7687-43e3-89fb-b7c885bc21ff
+    trigger: device
+  conditions: []
   actions:
   - action: light.turn_on
     metadata: {}
@@ -87,19 +85,17 @@
   alias: Turn off living room lights
   description: Turn off living room lights after sun rise or when it is 2230
   triggers:
-  - trigger: sun
-    event: sunrise
-    offset: 00:30:00
-  - trigger: time
-    at: '22:30:00'
-  - trigger: zone
-    entity_id: person.daniel
-    zone: zone.home
-    event: leave
-  - trigger: zone
-    entity_id: person.angelique
-    zone: zone.home
-    event: leave
+  - device_id: 0f1ac3694243722d548c2ba88a91828b
+    domain: hue
+    type: initial_press
+    subtype: 4
+    unique_id: 5862ab8b-61ae-4834-9dd0-fccbfc7fa13d
+    trigger: device
+  - type: turned_on
+    device_id: 9179a2f05cb186242144eb29ea87d28a
+    entity_id: 2ab2e55a8c43b150f38bd6f8d36bd960
+    domain: binary_sensor
+    trigger: device
   conditions: []
   actions:
   - action: light.turn_off
@@ -108,3 +104,70 @@
     target:
       area_id: living_room
   mode: single
+- id: '1750883116424'
+  alias: Motion activated kitchen lights
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.motion_sensor_1_motion
+    from: 'off'
+    to: 'on'
+  actions:
+  - alias: Turn on the light
+    action: light.turn_on
+    target:
+      area_id: kitchen
+    data: {}
+  - alias: Wait until there is no motion from device
+    wait_for_trigger:
+      trigger: state
+      entity_id: binary_sensor.motion_sensor_1_motion
+      from: 'on'
+      to: 'off'
+  - alias: Wait the number of seconds that has been set
+    delay: 120
+  - alias: Turn off the light
+    action: light.turn_off
+    target:
+      area_id: kitchen
+    data: {}
+  mode: restart
+  max_exceeded: silent
+- id: '1750883508722'
+  alias: Motion activated living room lights
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.motion_sensor_2_motion
+    from: 'off'
+    to: 'on'
+  conditions:
+  - condition: or
+    conditions:
+    - condition: sun
+      after: sunset
+      after_offset: -01:00:00
+    - condition: sun
+      before: sunrise
+      before_offset: 01:00:00
+  actions:
+  - alias: Turn on the light
+    action: light.turn_on
+    target:
+      area_id: living_room
+    data: {}
+  - alias: Wait until there is no motion from device
+    wait_for_trigger:
+      trigger: state
+      entity_id: binary_sensor.motion_sensor_2_motion
+      from: 'on'
+      to: 'off'
+  - alias: Wait the number of seconds that has been set
+    delay: 120
+  - alias: Turn off the light
+    action: light.turn_off
+    target:
+      area_id: living_room
+    data: {}
+  mode: restart
+  max_exceeded: silent
