@@ -50,6 +50,8 @@ services:
       - proxy
     environment:
       - HASSIO_CONFIG=/config
+    ports:
+        - "8123:8123"
     volumes:
       - ./config:/config
       - ./letsencrypt:/ssl

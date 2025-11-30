@@ -133,41 +133,65 @@
     data: {}
   mode: restart
   max_exceeded: silent
-- id: '1750883508722'
-  alias: Motion activated living room lights
+- id: '1753637902384'
+  alias: Turn on living room lights
+  description: Turn on living room lights when home and after sunset and before sunrise
+  triggers:
+  - type: motion
+    device_id: f0e8a5949f45150b38afffb79237f57f
+    entity_id: 692ca957fabcd5dd17262744b7045ebf
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - condition: sun
+    after: sunset
+    before: sunrise
+  - type: is_off
+    condition: device
+    device_id: 9179a2f05cb186242144eb29ea87d28a
+    entity_id: 2ab2e55a8c43b150f38bd6f8d36bd960
+    domain: binary_sensor
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data: {}
+    target:
+      area_id: living_room
+  mode: single
+- id: '1761838049827'
+  alias: Turn off all lights when leaving home
   description: ''
   triggers:
-  - trigger: state
-    entity_id: binary_sensor.motion_sensor_2_motion
-    from: 'off'
-    to: 'on'
-  conditions:
-  - condition: or
-    conditions:
-    - condition: sun
-      after: sunset
-      after_offset: -01:00:00
-    - condition: sun
-      before: sunrise
-      before_offset: 01:00:00
+  - trigger: zone
+    entity_id: person.daniel
+    zone: zone.home
+    event: leave
+  conditions: []
   actions:
-  - alias: Turn on the light
-    action: light.turn_on
-    target:
-      area_id: living_room
+  - action: light.turn_off
+    metadata: {}
     data: {}
-  - alias: Wait until there is no motion from device
-    wait_for_trigger:
-      trigger: state
-      entity_id: binary_sensor.motion_sensor_2_motion
-      from: 'on'
-      to: 'off'
-  - alias: Wait the number of seconds that has been set
-    delay: 120
-  - alias: Turn off the light
-    action: light.turn_off
     target:
-      area_id: living_room
-    data: {}
-  mode: restart
-  max_exceeded: silent
+      area_id:
+      - bedroom
+      - kitchen
+      - living_room
+  mode: single
+- id: '1763674783914'
+  alias: Turn off heating when leaving
+  description: ''
+  triggers:
+  - device_id: 9179a2f05cb186242144eb29ea87d28a
+    domain: device_tracker
+    entity_id: 0e8291c505349abe8a24133be2499148
+    type: leaves
+    trigger: device
+    zone: zone.home
+  conditions: []
+  actions:
+  - device_id: 0d89873dea6dfcae9f9856163966cfd8
+    domain: climate
+    entity_id: 1eff6989cd1cba05104dda2afd371548
+    type: set_hvac_mode
+    hvac_mode: 'off'
+  mode: single
