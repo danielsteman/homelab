@@ -192,6 +192,16 @@
   - device_id: 0d89873dea6dfcae9f9856163966cfd8
     domain: climate
     entity_id: 1eff6989cd1cba05104dda2afd371548
-    type: set_hvac_mode
-    hvac_mode: 'off'
+    type: set_preset_mode
+    preset_mode: VacationHold
   mode: single
+- id: '1764863934572'
+  alias: Operate hallway light on motion
+  description: ''
+  use_blueprint:
+    path: homeassistant/motion_light.yaml
+    input:
+      motion_entity: binary_sensor.motion_sensor_2_motion
+      light_target:
+        area_id: hallway
+      no_motion_wait: 10
