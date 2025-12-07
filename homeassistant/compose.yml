@@ -73,7 +73,7 @@ services:
 
       # Home Assistant by default listens on port 8123, so let Traefik know
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
-  
+
       # HTTP->HTTPS redirect:
       - 'traefik.http.routers.ha-insecure.rule=Host("homelab.danielsteman.com")'
       - "traefik.http.routers.ha-insecure.entrypoints=http"
