@@ -1,0 +1,23 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+
+# Sensitive files
+terraform.tfvars
+*.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Images
+*.iso
