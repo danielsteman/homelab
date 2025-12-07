@@ -11,7 +11,7 @@ output "k3s_worker_ips" {
 # Generate Ansible inventory
 output "ansible_inventory" {
   description = "Ansible inventory content - save to ansible/inventory/hosts.yml"
-  value = <<-EOT
+  value       = <<-EOT
 all:
   children:
     k3s_cluster:
@@ -19,12 +19,12 @@ all:
         master:
           hosts:
             k3s-master:
-              ansible_host: ${proxmox_vm_qemu.k3s_master.default_ipv4_address}
+              ansible_host: ${coalesce(proxmox_vm_qemu.k3s_master.default_ipv4_address, "PENDING")}
         workers:
           hosts:
 %{for i, ip in proxmox_vm_qemu.k3s_workers[*].default_ipv4_address~}
             k3s-worker-${i + 1}:
-              ansible_host: ${ip}
+              ansible_host: ${coalesce(ip, "PENDING")}
 %{endfor~}
 
   vars:
