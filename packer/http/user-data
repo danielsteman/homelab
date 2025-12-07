@@ -1,0 +1,30 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  timezone: Europe/Amsterdam
+  keyboard:
+    layout: us
+  identity:
+    hostname: ubuntu-template
+    username: ubuntu
+    password: "$6$rounds=4096$xyz$abc123hashedpassword" # ubuntu
+  ssh:
+    install-server: true
+    allow-pw: true
+  storage:
+    layout:
+      name: direct
+  packages:
+    - qemu-guest-agent
+    - cloud-init
+  late-commands:
+    - curtin in-target --target=/target -- systemctl enable qemu-guest-agent
+  user-data:
+    disable_root: false
+    chpasswd:
+      expire: false
+      users:
+        - name: ubuntu
+          password: ubuntu
+          type: text
