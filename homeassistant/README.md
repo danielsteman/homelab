@@ -28,4 +28,3 @@ Use a subdomain of danielsteman.com to securely connect to Home Assistant from t
 ```bash
 docker network create proxy
 ```
-
