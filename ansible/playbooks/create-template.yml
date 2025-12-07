@@ -1,0 +1,62 @@
+---
+# Create Ubuntu cloud-init template on Proxmox
+# Usage: ansible-playbook playbooks/create-template.yml -i inventory/proxmox.yml
+
+- name: Create Ubuntu template from cloud image
+  hosts: proxmox
+  become: yes
+  vars:
+    template_vmid: 9000
+    template_name: "ubuntu-template"
+    ubuntu_version: "noble"  # 24.04 LTS
+    cloud_image_url: "https://cloud-images.ubuntu.com/{{ ubuntu_version }}/current/{{ ubuntu_version }}-server-cloudimg-amd64.img"
+    cloud_image_path: "/var/lib/vz/template/iso/{{ ubuntu_version }}-server-cloudimg-amd64.img"
+    storage: "local-lvm"
+
+  tasks:
+    - name: Check if template already exists
+      ansible.builtin.shell: qm status {{ template_vmid }}
+      register: template_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Remove existing template if present
+      ansible.builtin.shell: qm destroy {{ template_vmid }} --purge
+      when: template_exists.rc == 0
+
+    - name: Download Ubuntu cloud image
+      ansible.builtin.get_url:
+        url: "{{ cloud_image_url }}"
+        dest: "{{ cloud_image_path }}"
+        mode: '0644'
+
+    - name: Create VM
+      ansible.builtin.shell: |
+        qm create {{ template_vmid }} \
+          --name {{ template_name }} \
+          --memory 2048 \
+          --cores 2 \
+          --net0 virtio,bridge=vmbr0
+
+    - name: Import cloud image as disk
+      ansible.builtin.shell: |
+        qm importdisk {{ template_vmid }} {{ cloud_image_path }} {{ storage }}
+
+    - name: Configure VM hardware
+      ansible.builtin.shell: |
+        qm set {{ template_vmid }} --scsihw virtio-scsi-pci --scsi0 {{ storage }}:vm-{{ template_vmid }}-disk-0
+        qm set {{ template_vmid }} --ide2 {{ storage }}:cloudinit
+        qm set {{ template_vmid }} --boot c --bootdisk scsi0
+        qm set {{ template_vmid }} --serial0 socket --vga serial0
+        qm set {{ template_vmid }} --agent enabled=1
+
+    - name: Resize disk to 25G
+      ansible.builtin.shell: |
+        qm resize {{ template_vmid }} scsi0 25G
+
+    - name: Convert to template
+      ansible.builtin.shell: qm template {{ template_vmid }}
+
+    - name: Template created successfully
+      ansible.builtin.debug:
+        msg: "Template '{{ template_name }}' (VMID: {{ template_vmid }}) created successfully!"

@@ -1,0 +1,6 @@
+# Kubeconfig (contains credentials)
+kubeconfig.yaml
+
+# Ansible
+*.retry
+.ansible/

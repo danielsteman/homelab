@@ -1,0 +1,15 @@
+---
+# K3s Cluster Installation Playbook
+# Usage: ansible-playbook playbooks/k3s.yml
+
+- name: Install k3s on master node
+  hosts: master
+  roles:
+    - role: k3s
+      k3s_role: server
+
+- name: Install k3s on worker nodes
+  hosts: workers
+  roles:
+    - role: k3s
+      k3s_role: agent
