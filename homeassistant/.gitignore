@@ -1,0 +1,23 @@
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Home Assistant generated
+config/.storage/
+config/.cloud/
+config/home-assistant.log*
+config/home-assistant_v2.db*
+config/tts/
+config/.HA_VERSION
+
+# Secrets (if not using secrets.yaml approach)
+config/secrets.yaml
+
+# Temp files
+*.tmp
+*.bak
+traefik-temp.yml
+
+# Accidentally created files (k8s endpoints?)
+*:*
