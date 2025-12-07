@@ -42,6 +42,29 @@ Infrastructure as Code for my homelab running on Proxmox VE.
 | **Terraform** | Deploy VMs by cloning template        | When adding/changing VMs           |
 | **Ansible**   | Install k3s and configure cluster     | After VM deployment                |
 
+## What is a Template?
+
+A **template** is a Proxmox feature - a read-only VM that can only be cloned, not started directly.
+
+```
+ubuntu-template (VMID 9000)          Terraform clones to:
+┌─────────────────────────┐          ┌─────────────────────────┐
+│  Ubuntu 24.04 LTS       │    ───►  │  k3s-master (VMID 100)  │
+│  cloud-init ready       │    ───►  │  k3s-worker-1 (VMID 101)│
+│  25GB disk              │    ───►  │  k3s-worker-2 (VMID 102)│
+└─────────────────────────┘          └─────────────────────────┘
+      (frozen image)                    (running VMs)
+```
+
+|               | Template | VM                |
+| ------------- | -------- | ----------------- |
+| Can start?    | ❌       | ✅                |
+| Can modify?   | ❌       | ✅                |
+| Can clone?    | ✅       | ✅                |
+| Uses RAM/CPU? | ❌       | ✅ (when running) |
+
+Similar concepts exist on other platforms: AWS AMIs, Azure VM Images, Docker Images.
+
 ## Quick Start
 
 ### Prerequisites
