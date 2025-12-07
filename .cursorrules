@@ -1,0 +1,44 @@
+# Homelab Project Rules
+
+## Documentation
+
+- When adding a new service (docker-compose, k8s manifest, etc.), always update the README.md:
+  - Add to the "Services" table
+  - Add to the "Directory Structure" section if creating a new folder
+  - Update architecture diagram if relevant
+
+## Services Table Format
+
+When adding a service to README.md, use this format:
+
+```markdown
+| Service Name | Brief description |
+```
+
+## Directory Structure
+
+Each service should have:
+
+- `compose.yml` or deployment manifest
+- `README.md` with setup instructions
+- `.gitignore` for secrets/generated files
+- `env.example` for environment variables (never commit actual `.env`)
+
+## Security
+
+- Never commit secrets, passwords, or API tokens
+- Use environment variables or external secret management
+- Always add `.env` files to `.gitignore`
+
+## Infrastructure as Code
+
+- Ansible: Configuration management and template creation
+- Terraform: VM provisioning on Proxmox
+- Docker Compose: Services running on Proxmox host
+
+## Naming Conventions
+
+- Folders: lowercase, hyphenated (e.g., `home-assistant`)
+- Docker containers: lowercase, hyphenated
+- Terraform resources: snake_case
+- Ansible roles: lowercase, hyphenated

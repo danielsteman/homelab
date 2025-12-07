@@ -125,17 +125,19 @@ homelab/
 │   └── outputs.tf              # Generates Ansible inventory
 ├── homeassistant/              # Home Assistant config
 ├── bitwarden/                  # Bitwarden config
+├── minio/                      # S3-compatible storage
 └── k3s/                        # K3s related configs
 ```
 
 ## Services
 
-| Service        | Description            |
-| -------------- | ---------------------- |
-| Home Assistant | Home automation        |
-| Traefik        | Reverse proxy          |
-| Bitwarden      | Password manager       |
-| K3s            | Lightweight Kubernetes |
+| Service        | Description                      |
+| -------------- | -------------------------------- |
+| Home Assistant | Home automation                  |
+| Traefik        | Reverse proxy                    |
+| Bitwarden      | Password manager                 |
+| MinIO          | S3-compatible storage (TF state) |
+| K3s            | Lightweight Kubernetes           |
 
 ## License
 
