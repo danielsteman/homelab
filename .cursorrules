@@ -1,5 +1,61 @@
 # Homelab Project Rules
 
+## GitOps Philosophy
+
+**Git is the single source of truth.** Every decision should prioritize:
+
+### Core Principles
+
+1. **Declarative over Imperative**: Define _what_ you want, not _how_ to get there
+
+   - Prefer Kubernetes manifests, Terraform, Ansible over manual commands
+   - No `kubectl apply` or `docker run` without corresponding committed config
+
+2. **Version Controlled**: All configuration lives in Git
+
+   - Infrastructure changes = Pull Requests
+   - History provides audit trail and rollback capability
+
+3. **Automated Reconciliation**: The system converges to the desired state
+
+   - Use ArgoCD/Flux for Kubernetes workloads
+   - Changes in Git trigger automatic deployment
+   - Drift detection and self-healing
+
+4. **Pull-based Deployments**: Cluster pulls desired state from Git
+
+   - No CI/CD pushing directly to cluster
+   - Cluster agents watch Git repos for changes
+
+5. **Immutable Infrastructure**: Replace, don't mutate
+   - New container image = new deployment
+   - VM changes via Terraform destroy/recreate when practical
+
+### Decision Framework
+
+When adding something new, ask:
+
+- [ ] Is it defined declaratively in a file I can commit?
+- [ ] Can it be recreated from scratch using only this repo?
+- [ ] Will changes be applied automatically when I push to Git?
+- [ ] Are secrets handled via sealed-secrets, SOPS, or external secret operator?
+
+### Tool Preferences
+
+| Layer          | GitOps Tool                              | Purpose                        |
+| -------------- | ---------------------------------------- | ------------------------------ |
+| Kubernetes     | ArgoCD or Flux                           | Continuous deployment from Git |
+| Secrets        | Sealed Secrets / SOPS / External Secrets | Git-safe secret management     |
+| Infrastructure | Terraform + Atlantis (optional)          | IaC with PR-based workflows    |
+| Configuration  | Ansible                                  | Idempotent node configuration  |
+
+### Anti-patterns to Avoid
+
+- Manual `kubectl` changes without updating manifests
+- Secrets stored as plain text or only in `.env` files
+- Configuration that exists only in a running container
+- "Just SSH in and fix it" mentality
+
 ## Documentation
 
 - When adding a new service (docker-compose, k8s manifest, etc.), always update the README.md:
