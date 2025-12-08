@@ -8,6 +8,7 @@ resource "proxmox_vm_qemu" "k3s_master" {
   cores   = 2
   memory  = 2048 # 2 GB
   sockets = 1
+  scsihw  = "virtio-scsi-pci"
 
   os_type    = "cloud-init"
   ciuser     = var.default_user
@@ -45,6 +46,7 @@ resource "proxmox_vm_qemu" "k3s_workers" {
   cores   = 2
   memory  = 2048 # 2 GB
   sockets = 1
+  scsihw  = "virtio-scsi-pci"
 
   os_type   = "cloud-init"
   ciuser    = var.default_user
