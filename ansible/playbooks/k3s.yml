@@ -4,12 +4,105 @@
 
 - name: Install k3s on master node
   hosts: master
-  roles:
-    - role: k3s
-      k3s_role: server
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Check if k3s is already installed
+      ansible.builtin.raw: test -f /usr/local/bin/k3s && echo "installed" || echo "not installed"
+      register: k3s_check
+      changed_when: false
+
+    - name: Install k3s server
+      ansible.builtin.raw: |
+        curl -sfL https://get.k3s.io | sh -s - server \
+          --write-kubeconfig-mode 644 \
+          --disable traefik \
+          --node-name k3s-master
+      when: "'not installed' in k3s_check.stdout"
+
+    - name: Wait for k3s to be ready
+      ansible.builtin.raw: |
+        for i in $(seq 1 60); do
+          if [ -f /var/lib/rancher/k3s/server/node-token ]; then
+            echo "ready"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "timeout"
+        exit 1
+      register: k3s_ready
+
+    - name: Get node token
+      ansible.builtin.raw: cat /var/lib/rancher/k3s/server/node-token
+      register: k3s_token_raw
+      changed_when: false
+
+    - name: Get kubeconfig
+      ansible.builtin.raw: cat /etc/rancher/k3s/k3s.yaml
+      register: kubeconfig_raw
+      changed_when: false
+
+    - name: Save kubeconfig locally
+      ansible.builtin.copy:
+        content: "{{ kubeconfig_raw.stdout | replace('127.0.0.1', '10.0.2.10') }}"
+        dest: "{{ playbook_dir }}/../kubeconfig.yaml"
+        mode: "0600"
+      delegate_to: localhost
+      become: false
+
+    - name: Display token for workers
+      ansible.builtin.debug:
+        msg: "K3s token: {{ k3s_token_raw.stdout | trim }}"
 
 - name: Install k3s on worker nodes
   hosts: workers
-  roles:
-    - role: k3s
-      k3s_role: agent
+  gather_facts: false
+  become: true
+  vars:
+    k3s_master_ip: "10.0.2.10"
+  tasks:
+    - name: Get token from master
+      ansible.builtin.raw: cat /var/lib/rancher/k3s/server/node-token
+      register: k3s_token
+      delegate_to: k3s-master
+      changed_when: false
+
+    - name: Check if k3s is already installed
+      ansible.builtin.raw: test -f /usr/local/bin/k3s && echo "installed" || echo "not installed"
+      register: k3s_check
+      changed_when: false
+
+    - name: Install k3s agent
+      ansible.builtin.raw: |
+        curl -sfL https://get.k3s.io | sh -s - agent \
+          --server https://{{ k3s_master_ip }}:6443 \
+          --token {{ k3s_token.stdout | trim }} \
+          --node-name {{ inventory_hostname }}
+      when: "'not installed' in k3s_check.stdout"
+
+    - name: Wait for agent to be running
+      ansible.builtin.raw: |
+        for i in $(seq 1 30); do
+          if systemctl is-active k3s-agent >/dev/null 2>&1; then
+            echo "running"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "not running"
+      register: agent_status
+
+- name: Verify cluster
+  hosts: master
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Get cluster nodes
+      ansible.builtin.raw: kubectl get nodes
+      register: cluster_nodes
+      changed_when: false
+
+    - name: Display cluster status
+      ansible.builtin.debug:
+        msg: "{{ cluster_nodes.stdout_lines }}"
