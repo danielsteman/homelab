@@ -65,12 +65,60 @@ ubuntu-template (VMID 9000)          Terraform clones to:
 
 Similar concepts exist on other platforms: AWS AMIs, Azure VM Images, Docker Images.
 
+## Secrets Management
+
+This repo uses **SOPS + age** for GitOps-friendly secret management. Encrypted secrets are committed to Git and decrypted at deploy time.
+
+```
+secrets/
+├── age-key.txt      # Your private key (NEVER commit - gitignored)
+└── README.md        # Setup instructions
+
+# Encrypted files (safe to commit)
+k3s/my-secret.enc.yaml
+bitwarden/secrets.enc.env
+```
+
+### Quick Setup
+
+```bash
+# Install tools (macOS)
+brew install sops age direnv pre-commit
+
+# Generate your key
+age-keygen -o secrets/age-key.txt
+
+# Add public key to .sops.yaml, then enable direnv
+direnv allow
+
+# Install pre-commit hooks (prevents committing unencrypted secrets)
+pre-commit install
+
+# Now SOPS_AGE_KEY_FILE is auto-set when you're in this repo!
+sops --encrypt secret.yaml > secret.enc.yaml
+```
+
+See [`secrets/README.md`](secrets/README.md) for detailed instructions.
+
+**Pre-commit hooks** prevent accidentally committing unencrypted secrets:
+
+```bash
+$ git add secrets.yaml  # Unencrypted!
+$ git commit -m "oops"
+Check for unencrypted secrets..........................................Failed
+- hook id: no-unencrypted-secrets
+- ERROR: Unencrypted secret file detected: secrets.yaml
+```
+
 ## Quick Start
 
 ### Prerequisites
 
 - [Terraform](https://developer.hashicorp.com/terraform/install)
 - [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/)
+- [SOPS](https://github.com/getsops/sops) + [age](https://github.com/FiloSottile/age) for secrets
+- [direnv](https://direnv.net/) for auto-env vars
+- [pre-commit](https://pre-commit.com/) for git hooks
 - Proxmox VE with API token
 - SSH access to Proxmox host
 
@@ -112,6 +160,15 @@ kubectl get nodes
 
 ```
 homelab/
+├── .sops.yaml                  # SOPS encryption rules
+├── .pre-commit-config.yaml     # Git hooks config
+├── .envrc                      # direnv auto-env vars
+├── secrets/                    # Age key storage (gitignored)
+│   ├── age-key.txt             # Private key (DO NOT COMMIT)
+│   └── README.md               # SOPS setup guide
+├── scripts/                    # Helper scripts
+│   ├── check-secrets.sh        # Pre-commit: block unencrypted
+│   └── verify-sops.sh          # Pre-commit: verify encryption
 ├── ansible/                    # Configuration management
 │   ├── inventory/
 │   │   ├── proxmox.yml         # Proxmox host

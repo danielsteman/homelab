@@ -1,0 +1,18 @@
+# SOPS configuration for homelab secrets
+# https://github.com/getsops/sops
+
+creation_rules:
+  # Kubernetes secrets (encrypt only the data values)
+  - path_regex: .*\.enc\.ya?ml$
+    encrypted_regex: "^(data|stringData)$"
+    age: age1x0fxljch6zqw7gcefks3z7apls69mpmqrhejs6dkzx2x5lhs5ycskzvcaj
+
+  # Environment files
+  - path_regex: .*\.enc\.env$
+    age: >-
+      # Add your age public key here
+
+  # JSON files (for any JSON secrets)
+  - path_regex: .*\.enc\.json$
+    age: >-
+      # Add your age public key here

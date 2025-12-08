@@ -38,16 +38,23 @@ When adding something new, ask:
 - [ ] Is it defined declaratively in a file I can commit?
 - [ ] Can it be recreated from scratch using only this repo?
 - [ ] Will changes be applied automatically when I push to Git?
-- [ ] Are secrets handled via sealed-secrets, SOPS, or external secret operator?
+- [ ] Are secrets encrypted with SOPS (_.enc.yaml, _.enc.env)?
 
 ### Tool Preferences
 
-| Layer          | GitOps Tool                              | Purpose                        |
-| -------------- | ---------------------------------------- | ------------------------------ |
-| Kubernetes     | ArgoCD or Flux                           | Continuous deployment from Git |
-| Secrets        | Sealed Secrets / SOPS / External Secrets | Git-safe secret management     |
-| Infrastructure | Terraform + Atlantis (optional)          | IaC with PR-based workflows    |
-| Configuration  | Ansible                                  | Idempotent node configuration  |
+| Layer          | GitOps Tool                     | Purpose                        |
+| -------------- | ------------------------------- | ------------------------------ |
+| Kubernetes     | ArgoCD or Flux                  | Continuous deployment from Git |
+| Secrets        | **SOPS + age**                  | Git-safe secret encryption     |
+| Infrastructure | Terraform + Atlantis (optional) | IaC with PR-based workflows    |
+| Configuration  | Ansible                         | Idempotent node configuration  |
+
+### Secret Management (SOPS + age)
+
+- Encrypt secrets before committing: `sops --encrypt file.yaml > file.enc.yaml`
+- Use naming convention: `*.enc.yaml`, `*.enc.env`, `*.enc.json`
+- Never commit: `age-key.txt`, `*.dec.*`, plain `.env` files
+- Edit encrypted files in-place: `sops file.enc.yaml`
 
 ### Anti-patterns to Avoid
 
@@ -82,9 +89,10 @@ Each service should have:
 
 ## Security
 
-- Never commit secrets, passwords, or API tokens
-- Use environment variables or external secret management
-- Always add `.env` files to `.gitignore`
+- Never commit unencrypted secrets, passwords, or API tokens
+- Use SOPS + age to encrypt secrets before committing (`*.enc.yaml`, `*.enc.env`)
+- Always add `.env` and `age-key.txt` files to `.gitignore`
+- Create `*.example.env` templates showing required variables (without real values)
 
 ## Infrastructure as Code
 

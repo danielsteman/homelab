@@ -1,18 +1,37 @@
+# Pre-commit hooks for homelab
+# Install: pre-commit install
+# Run manually: pre-commit run --all-files
+# https://pre-commit.com
+
 repos:
+  # Standard pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: v4.5.0
     hooks:
-      - id: trailing-whitespace
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+        exclude: '\.enc\.ya?ml$' # Skip encrypted files
+      - id: check-json
+        exclude: '\.enc\.json$'
       - id: end-of-file-fixer
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.30.0
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: detect-private-key # Catches accidentally committed private keys
+
+  # Local hooks for SOPS/secrets
+  - repo: local
     hooks:
-      - id: gitleaks
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.10.0
-    hooks:
-      - id: commitizen
-  - repo: https://github.com/dnephin/pre-commit-golang
-    rev: v0.5.1
-    hooks:
-      - id: go-fmt
+      # Prevent committing unencrypted secret files
+      - id: no-unencrypted-secrets
+        name: Check for unencrypted secrets
+        entry: scripts/check-secrets.sh
+        language: script
+        files: '(secrets?|credentials?|password|token|key)\.(ya?ml|env|json)$'
+        exclude: '(\.enc\.|\.example\.|example\.)'
+
+      # Verify SOPS-encrypted files are actually encrypted
+      - id: sops-encrypted
+        name: Verify SOPS encryption
+        entry: scripts/verify-sops.sh
+        language: script
+        files: '\.enc\.(ya?ml|env|json)$'

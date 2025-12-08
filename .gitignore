@@ -1,3 +1,14 @@
+# SOPS age private keys (NEVER commit these!)
+secrets/age-key.txt
+secrets/*.key
+*.agekey
+
+# Decrypted secret files (temporary)
+*.dec.yaml
+*.dec.yml
+*.dec.env
+*.dec.json
+
 # Logs
 logs
 *.log
