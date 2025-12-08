@@ -13,7 +13,7 @@ resource "proxmox_vm_qemu" "k3s_master" {
   os_type    = "cloud-init"
   ciuser     = var.default_user
   sshkeys    = var.ssh_keys
-  ipconfig0  = "ip=dhcp"
+  ipconfig0  = "ip=10.0.2.10/24,gw=10.0.2.1"
   nameserver = "1.1.1.1"
 
   disk {
@@ -51,7 +51,7 @@ resource "proxmox_vm_qemu" "k3s_workers" {
   os_type   = "cloud-init"
   ciuser    = var.default_user
   sshkeys   = var.ssh_keys
-  ipconfig0 = "ip=dhcp"
+  ipconfig0 = "ip=10.0.2.${11 + count.index}/24,gw=10.0.2.1"
 
   disk {
     type    = "scsi"
