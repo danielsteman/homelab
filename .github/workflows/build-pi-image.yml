@@ -14,6 +14,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          df -h
+
       - name: Install Nix
         uses: cachix/install-nix-action@v27
         with:
@@ -29,57 +34,20 @@ jobs:
       - name: Build SD Image
         run: |
           cd nix
-
-          # Use nixos-generators with explicit output
-          nix run nixpkgs#nixos-generators -- \
-            -f sd-aarch64 \
-            --flake .#pi \
-            -o result \
-            --system aarch64-linux
-
-          echo "=== Build complete ==="
-          echo "Current directory:"
-          ls -la
-
-          echo "Result symlink:"
-          ls -la result || echo "No result symlink"
-
-          echo "Result contents:"
-          ls -laR result/ 2>/dev/null || readlink -f result
+          nix build .#sdImage --system aarch64-linux -L
 
       - name: Copy image
         run: |
           cd nix
-
-          # The image should be at result/sd-image/*.img.zst or similar
-          echo "Finding image..."
-
-          # Try different possible locations
-          if [ -f result ]; then
-            # result is the image itself
-            cp result ./nixos-pi.img
-          elif [ -d result ]; then
-            # result is a directory
-            IMG=$(find result -name "*.img*" | head -1)
-            cp "$IMG" ./nixos-pi.img.zst
-          elif [ -L result ]; then
-            # result is a symlink
-            REAL=$(readlink -f result)
-            echo "Result points to: $REAL"
-            if [ -d "$REAL" ]; then
-              IMG=$(find "$REAL" -name "*.img*" | head -1)
-              cp "$IMG" ./nixos-pi.img.zst
-            else
-              cp "$REAL" ./nixos-pi.img.zst
-            fi
-          fi
-
-          echo "=== Final image ==="
-          ls -lh nixos-pi* || echo "No image found!"
+          ls -la result/
+          IMG=$(ls result/sd-image/*.img* 2>/dev/null || ls result/*.img* 2>/dev/null)
+          echo "Found: $IMG"
+          cp "$IMG" ./nixos-pi.img.zst
+          ls -lh nixos-pi*
 
       - name: Upload SD Image
         uses: actions/upload-artifact@v4
         with:
           name: nixos-pi-sd-image
-          path: nix/nixos-pi-sd*
+          path: nix/nixos-pi*
           retention-days: 7
