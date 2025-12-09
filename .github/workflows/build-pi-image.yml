@@ -35,19 +35,43 @@ jobs:
             -o ./result \
             --system aarch64-linux
 
+          # Debug: show what was created
+          echo "Contents of result:"
+          ls -la ./result/ || echo "result is a file"
+          ls -la ./result 2>/dev/null || true
+
+          # Follow symlink
+          echo "Result points to:"
+          readlink -f ./result
+
       - name: Prepare artifact
         run: |
           cd nix
-          # Find the image
-          IMG=$(find result -name "*.img" -o -name "*.img.zst" | head -1)
+
+          # Find the image file (could be in result/ or result is the symlink)
+          if [ -d "./result" ]; then
+            IMG=$(find ./result -type f \( -name "*.img" -o -name "*.img.zst" \) | head -1)
+          else
+            # result might be a symlink to a directory
+            REAL_PATH=$(readlink -f ./result)
+            IMG=$(find "$REAL_PATH" -type f \( -name "*.img" -o -name "*.img.zst" \) | head -1)
+          fi
+
           echo "Found image: $IMG"
-          # Copy out of nix store
-          cp -L "$IMG" ./nixos-pi.img.zst || cp -L "$IMG" ./nixos-pi.img
-          ls -lh nixos-pi*
+
+          if [ -n "$IMG" ]; then
+            cp -L "$IMG" ./nixos-pi-sd.img.zst 2>/dev/null || cp -L "$IMG" ./nixos-pi-sd.img
+            ls -lh nixos-pi*
+          else
+            echo "ERROR: No image found!"
+            echo "Searching entire result tree:"
+            find ./result -type f 2>/dev/null || find "$(readlink -f ./result)" -type f
+            exit 1
+          fi
 
       - name: Upload SD Image
         uses: actions/upload-artifact@v4
         with:
           name: nixos-pi-sd-image
-          path: nix/nixos-pi*
+          path: nix/nixos-pi-sd*
           retention-days: 7
