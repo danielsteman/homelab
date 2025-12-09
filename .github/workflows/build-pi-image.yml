@@ -1,0 +1,53 @@
+name: Build Raspberry Pi SD Image
+
+on:
+  push:
+    paths:
+      - "nix/**"
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            extra-platforms = aarch64-linux
+
+      - name: Set up QEMU for aarch64
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Build SD Image
+        run: |
+          cd nix
+          nix run nixpkgs#nixos-generators -- \
+            -f sd-aarch64 \
+            --flake .#pi \
+            -o ./result \
+            --system aarch64-linux
+
+      - name: Prepare artifact
+        run: |
+          cd nix
+          # Find the image
+          IMG=$(find result -name "*.img" -o -name "*.img.zst" | head -1)
+          echo "Found image: $IMG"
+          # Copy out of nix store
+          cp -L "$IMG" ./nixos-pi.img.zst || cp -L "$IMG" ./nixos-pi.img
+          ls -lh nixos-pi*
+
+      - name: Upload SD Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: nixos-pi-sd-image
+          path: nix/nixos-pi*
+          retention-days: 7
