@@ -29,45 +29,53 @@ jobs:
       - name: Build SD Image
         run: |
           cd nix
+
+          # Use nixos-generators with explicit output
           nix run nixpkgs#nixos-generators -- \
             -f sd-aarch64 \
             --flake .#pi \
-            -o ./result \
+            -o result \
             --system aarch64-linux
 
-          # Debug: show what was created
-          echo "Contents of result:"
-          ls -la ./result/ || echo "result is a file"
-          ls -la ./result 2>/dev/null || true
+          echo "=== Build complete ==="
+          echo "Current directory:"
+          ls -la
 
-          # Follow symlink
-          echo "Result points to:"
-          readlink -f ./result
+          echo "Result symlink:"
+          ls -la result || echo "No result symlink"
 
-      - name: Prepare artifact
+          echo "Result contents:"
+          ls -laR result/ 2>/dev/null || readlink -f result
+
+      - name: Copy image
         run: |
           cd nix
 
-          # Find the image file (could be in result/ or result is the symlink)
-          if [ -d "./result" ]; then
-            IMG=$(find ./result -type f \( -name "*.img" -o -name "*.img.zst" \) | head -1)
-          else
-            # result might be a symlink to a directory
-            REAL_PATH=$(readlink -f ./result)
-            IMG=$(find "$REAL_PATH" -type f \( -name "*.img" -o -name "*.img.zst" \) | head -1)
+          # The image should be at result/sd-image/*.img.zst or similar
+          echo "Finding image..."
+
+          # Try different possible locations
+          if [ -f result ]; then
+            # result is the image itself
+            cp result ./nixos-pi.img
+          elif [ -d result ]; then
+            # result is a directory
+            IMG=$(find result -name "*.img*" | head -1)
+            cp "$IMG" ./nixos-pi.img.zst
+          elif [ -L result ]; then
+            # result is a symlink
+            REAL=$(readlink -f result)
+            echo "Result points to: $REAL"
+            if [ -d "$REAL" ]; then
+              IMG=$(find "$REAL" -name "*.img*" | head -1)
+              cp "$IMG" ./nixos-pi.img.zst
+            else
+              cp "$REAL" ./nixos-pi.img.zst
+            fi
           fi
 
-          echo "Found image: $IMG"
-
-          if [ -n "$IMG" ]; then
-            cp -L "$IMG" ./nixos-pi-sd.img.zst 2>/dev/null || cp -L "$IMG" ./nixos-pi-sd.img
-            ls -lh nixos-pi*
-          else
-            echo "ERROR: No image found!"
-            echo "Searching entire result tree:"
-            find ./result -type f 2>/dev/null || find "$(readlink -f ./result)" -type f
-            exit 1
-          fi
+          echo "=== Final image ==="
+          ls -lh nixos-pi* || echo "No image found!"
 
       - name: Upload SD Image
         uses: actions/upload-artifact@v4
