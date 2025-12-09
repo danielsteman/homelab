@@ -1,5 +1,5 @@
 # Pre-commit hooks for homelab
-# Install: pre-commit install
+# Install: pre-commit install --hook-type commit-msg --hook-type pre-commit
 # Run manually: pre-commit run --all-files
 # https://pre-commit.com
 
@@ -17,6 +17,13 @@ repos:
       - id: trailing-whitespace
       - id: check-merge-conflict
       - id: detect-private-key # Catches accidentally committed private keys
+
+  # Commitizen - conventional commits
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.29.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
 
   # Local hooks for SOPS/secrets
   - repo: local
