@@ -8,7 +8,10 @@
 
   # Boot
   boot.loader.grub.enable = false;
-  boot.loader.generic-extlinux-compatible.enable = true;
+  boot.loader.generic-extlinux-compatible = {
+    enable = true;
+    device = "nodev";
+  };
 
   # Raspberry Pi hardware (headless - no GPU needed)
   boot.kernelPackages = pkgs.linuxPackages_rpi4;  # Pi-specific kernel
@@ -50,7 +53,42 @@
     vim
     htop
     git
+    k9s
+    kubectl
   ];
+
+  # ─────────────────────────────────────────────────────────────────
+  # K3s Configuration
+  # ─────────────────────────────────────────────────────────────────
+
+  # K3s agent (worker node)
+  # TODO: Update serverAddr after k3s-master is set up
+  services.k3s = {
+    enable = true;
+    role = "agent";
+    serverAddr = "https://k3s-master:6443";  # Will update with actual IP
+    # tokenFile = "/run/secrets/k3s-token";  # Use SOPS secret later
+  };
+
+  # Firewall - k3s ports
+  networking.firewall = {
+    allowedTCPPorts = [
+      22     # SSH
+      6443   # Kubernetes API (if master)
+      10250  # Kubelet
+    ];
+    allowedUDPPorts = [
+      8472   # Flannel VXLAN
+    ];
+    # Allow cluster network traffic
+    trustedInterfaces = [ "cni0" "flannel.1" ];
+  };
+
+  # Kernel settings for k8s
+  boot.kernel.sysctl = {
+    "net.ipv4.ip_forward" = 1;
+    "net.ipv6.conf.all.forwarding" = 1;
+  };
 
   # Flakes
   nix.settings.experimental-features = [ "nix-command" "flakes" ];

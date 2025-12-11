@@ -34,7 +34,7 @@ jobs:
       - name: Build SD Image
         run: |
           cd nix
-          nix build .#sdImage --system aarch64-linux -L
+          nix build .#packages.aarch64-linux.sdImage --system aarch64-linux -L
 
       - name: Copy image
         run: |
