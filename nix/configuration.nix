@@ -10,6 +10,9 @@
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;
 
+  # Raspberry Pi hardware (headless - no GPU needed)
+  boot.kernelPackages = pkgs.linuxPackages_rpi4;  # Pi-specific kernel
+
   # Hostname
   networking.hostName = "pi";
 
