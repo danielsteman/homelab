@@ -6,9 +6,15 @@ on:
       - "nix/**"
   workflow_dispatch: # Manual trigger
 
+# Only allow one concurrent run
+concurrency:
+  group: build-pi-image
+  cancel-in-progress: false # Wait for current run to finish
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60 # 1 hour timeout
 
     steps:
       - name: Checkout
