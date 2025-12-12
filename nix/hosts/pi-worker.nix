@@ -10,7 +10,9 @@
 
   # Boot
   boot.loader.grub.enable = false;
-  boot.loader.generic-extlinux-compatible = true;
+  boot.loader.generic-extlinux-compatible = {
+    enable = true;
+  };
 
   # Raspberry Pi hardware
   boot.kernelPackages = pkgs.linuxPackages_rpi4;
