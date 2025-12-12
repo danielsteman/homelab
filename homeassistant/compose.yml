@@ -14,6 +14,7 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entryPoints.http.address=:80"
       - "--entryPoints.https.address=:443"
+      - "--entryPoints.https.http.tls=true"
       # --- ACME Config (Cloudflare DNS challenge) ---
       - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
       - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1:53"
@@ -52,7 +53,7 @@ services:
     environment:
       - HASSIO_CONFIG=/config
     ports:
-        - "8123:8123"
+      - "8123:8123"
     volumes:
       - ./config:/config
       - ./letsencrypt:/ssl
