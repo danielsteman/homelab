@@ -10,10 +10,7 @@
 
   # Boot
   boot.loader.grub.enable = false;
-  boot.loader.generic-extlinux-compatible = {
-    enable = true;
-    device = "nodev";
-  };
+  boot.loader.generic-extlinux-compatible = true;
 
   # Raspberry Pi hardware
   boot.kernelPackages = pkgs.linuxPackages_rpi4;
