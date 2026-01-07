@@ -40,8 +40,8 @@ jobs:
         run: |
           cd nix
           # Use nixos-generators to build VM image from template config
-          # Using 'raw' format to avoid virtualisation module issues
-          # Then convert to qcow2 for Proxmox
+          # Flake uses nixos-unstable (compatible with nixos-generators)
+          # Using 'raw' format, then convert to qcow2 for Proxmox
           nix run github:nix-community/nixos-generators -- \
             --format raw \
             --flake .#template \
