@@ -1,27 +1,28 @@
 # NixOS configurations for homelab
-# Supports: Raspberry Pi (ARM) + Proxmox VMs (x86)
+# Proxmox VMs (x86)
 {
   description = "Homelab NixOS Configurations";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, ... }: {
-    # ─────────────────────────────────────────────────────────────
-    # Raspberry Pi (ARM)
-    # ─────────────────────────────────────────────────────────────
-    nixosConfigurations.pi-worker = nixpkgs.lib.nixosSystem {
-      system = "aarch64-linux";
-      modules = [
-        "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-        ./hosts/pi-worker.nix
-      ];
-    };
-
+  outputs = { self, nixpkgs, nixos-generators, ... }: {
     # ─────────────────────────────────────────────────────────────
     # Proxmox VMs (x86)
     # ─────────────────────────────────────────────────────────────
+    # Template VM - minimal base for cloning
+    nixosConfigurations.template = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        ./hosts/template.nix
+      ];
+    };
+
     nixosConfigurations.k3s-master = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
@@ -44,12 +45,13 @@
     };
 
     # ─────────────────────────────────────────────────────────────
-    # SD Image for Pi
+    # VM Image for Proxmox Template
     # ─────────────────────────────────────────────────────────────
-    packages.aarch64-linux.sdImage =
-      self.nixosConfigurations.pi-worker.config.system.build.sdImage;
-
-    packages.aarch64-linux.default =
-      self.nixosConfigurations.pi-worker.config.system.build.sdImage;
+    # Build raw disk image from template config using nixos-generators
+    # Raw format can be converted to qcow2 for Proxmox
+    # Note: Image building will be handled in CI/CD workflow
+    # For now, this is a placeholder - we'll build images via GitHub Actions
+    packages.x86_64-linux.vmImage =
+      self.nixosConfigurations.template.config.system.build.toplevel;
   };
 }
