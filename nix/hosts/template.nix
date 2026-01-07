@@ -26,5 +26,9 @@
   # Note: In nixos-unstable, use services.qemuGuest instead
   services.qemuGuest.enable = true;
 
+  # Disk size for image building (required by nixos-generators)
+  # This is only used when building images, not for running VMs
+  virtualisation.diskSize = 8192; # 8 GB
+
   system.stateVersion = "24.11";  # Updated for nixos-unstable
 }

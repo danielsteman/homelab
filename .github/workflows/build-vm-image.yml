@@ -37,15 +37,20 @@ jobs:
           sudo apt-get install -y qemu-utils
 
       - name: Build VM Image
+        env:
+          # Limit resources to avoid kernel panics in nested VM
+          NIX_BUILD_CORES: 2
         run: |
           cd nix
           # Use nixos-generators to build VM image from template config
           # Flake uses nixos-unstable (compatible with nixos-generators)
           # Using 'raw' format, then convert to qcow2 for Proxmox
+          # Note: VM building in GitHub Actions can be unstable due to nested virtualization
           nix run github:nix-community/nixos-generators -- \
             --format raw \
             --flake .#template \
-            -o result
+            -o result \
+            --cores 2
 
       - name: Prepare image
         run: |
