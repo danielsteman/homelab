@@ -1,0 +1,88 @@
+name: Build NixOS VM Image for Proxmox
+
+on:
+  push:
+    paths:
+      - "nix/**"
+  workflow_dispatch: # Manual trigger
+
+# Only allow one concurrent run
+concurrency:
+  group: build-vm-image
+  cancel-in-progress: false # Wait for current run to finish
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60 # 1 hour timeout
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          df -h
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Install qemu-img for image info
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-utils
+
+      - name: Build VM Image
+        run: |
+          cd nix
+          # Use nixos-generators to build qcow2 image from template config
+          # Using --flake to build from our template configuration
+          nix run github:nix-community/nixos-generators -- \
+            --format qcow2 \
+            --flake .#template \
+            -o result
+
+      - name: Prepare image
+        run: |
+          cd nix
+          # nixos-generators outputs qcow2 to result/
+          if [ -f result/nixos.qcow2 ]; then
+            cp result/nixos.qcow2 ./nixos-template.qcow2
+          else
+            echo "Error: Could not find qcow2 image in result/"
+            ls -la result/
+            exit 1
+          fi
+
+          echo "Image size:"
+          ls -lh nixos-template.qcow2
+
+          # Show image info
+          if command -v qemu-img &> /dev/null; then
+            echo "Image details:"
+            qemu-img info nixos-template.qcow2 || true
+          fi
+
+      - name: Upload VM Image Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nixos-vm-template
+          path: nix/nixos-template.qcow2
+          retention-days: 7
+          compression-level: 6
+
+      - name: Summary
+        run: |
+          echo "## VM Image Built Successfully 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`nixos-template.qcow2\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download the artifact from this workflow run" >> $GITHUB_STEP_SUMMARY
+          echo "2. Upload to Proxmox storage" >> $GITHUB_STEP_SUMMARY
+          echo "3. Create VM from image and convert to template" >> $GITHUB_STEP_SUMMARY
+          echo "4. Update Terraform to use the new template" >> $GITHUB_STEP_SUMMARY
