@@ -31,7 +31,7 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
-      - name: Install qemu-img for image info
+      - name: Install qemu-img for image conversion and info
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-utils
@@ -39,21 +39,28 @@ jobs:
       - name: Build VM Image
         run: |
           cd nix
-          # Use nixos-generators to build qcow2 image from template config
-          # Using --flake to build from our template configuration
+          # Use nixos-generators to build VM image from template config
+          # Using 'raw' format to avoid virtualisation module issues
+          # Then convert to qcow2 for Proxmox
           nix run github:nix-community/nixos-generators -- \
-            --format qcow2 \
+            --format raw \
             --flake .#template \
             -o result
 
       - name: Prepare image
         run: |
           cd nix
-          # nixos-generators outputs qcow2 to result/
-          if [ -f result/nixos.qcow2 ]; then
-            cp result/nixos.qcow2 ./nixos-template.qcow2
+          # nixos-generators with raw format outputs nixos.raw
+          # Convert to qcow2 for Proxmox
+          if [ -f result/nixos.raw ]; then
+            echo "Found raw image, converting to qcow2..."
+            qemu-img convert -f raw -O qcow2 result/nixos.raw ./nixos-template.qcow2
+            rm result/nixos.raw
+          elif [ -f result/*.img ]; then
+            echo "Found img file, converting to qcow2..."
+            qemu-img convert -f raw -O qcow2 result/*.img ./nixos-template.qcow2
           else
-            echo "Error: Could not find qcow2 image in result/"
+            echo "Error: Could not find raw image in result/"
             ls -la result/
             exit 1
           fi

@@ -38,5 +38,5 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.trusted-users = [ "root" "daniel" ];
 
-  system.stateVersion = "24.05";
+  system.stateVersion = "24.11";  # Updated for nixos-unstable
 }

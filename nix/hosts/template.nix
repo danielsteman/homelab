@@ -22,11 +22,9 @@
   # No k3s, no specific services - just a clean base
   # Cloned VMs will get their specific configs via deploy_nixos
 
-  # VM image settings
-  virtualisation = {
-    # Enable QEMU guest agent for Proxmox integration
-    qemu.guestAgent.enable = true;
-  };
+  # QEMU guest agent for Proxmox integration
+  # Note: In nixos-unstable, use services.qemuGuest instead
+  services.qemuGuest.enable = true;
 
-  system.stateVersion = "24.05";
+  system.stateVersion = "24.11";  # Updated for nixos-unstable
 }
