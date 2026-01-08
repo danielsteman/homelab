@@ -1,4 +1,4 @@
-# Raspberry Pi NixOS Configuration
+# Generic NixOS Configuration
 { config, pkgs, lib, ... }:
 
 {
@@ -6,24 +6,15 @@
     ./hardware-configuration.nix
   ];
 
-  # Boot
-  boot.loader.grub.enable = false;
-  boot.loader.generic-extlinux-compatible = {
-    enable = true;
-    device = "nodev";
-  };
-
-  # Raspberry Pi hardware (headless - no GPU needed)
-  boot.kernelPackages = pkgs.linuxPackages_rpi4;  # Pi-specific kernel
+  # Boot (Proxmox VM)
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
 
   # Hostname
-  networking.hostName = "pi";
+  networking.hostName = "nixos";
 
   # Network - DHCP
   networking.useDHCP = lib.mkDefault true;
-
-  # WiFi support (connect with: iwctl)
-  networking.wireless.iwd.enable = true;
 
   # User
   users.users.daniel = {
@@ -93,5 +84,5 @@
   # Flakes
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  system.stateVersion = "24.05";
+  system.stateVersion = "24.11";  # Updated for nixos-unstable
 }
