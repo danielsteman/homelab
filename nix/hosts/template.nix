@@ -9,8 +9,12 @@
   ];
 
   # Boot (Proxmox VM)
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  # Use GRUB for better compatibility with Proxmox raw disk images
+  boot.loader.grub = {
+    enable = true;
+    device = "nodev";  # For disk images, don't install to a specific device
+    efiSupport = false;  # Use BIOS boot for maximum compatibility
+  };
 
   # Generic hostname (will be overridden when cloned/deployed)
   networking.hostName = "nixos-template";
