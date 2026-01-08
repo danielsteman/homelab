@@ -6,11 +6,9 @@ proxmox_token_id     = "root@pam!terraform"
 proxmox_token_secret = "your-api-token-secret"
 proxmox_node         = "pve"
 
-template_name = "ubuntu-template"
+template_name = "nixos-template"
 storage       = "local-lvm"
-default_user  = "ubuntu"
+default_user  = "daniel"
 
-# Your SSH public key for cloud-init
-ssh_keys = <<-EOT
-ssh-rsa AAAA... your-key-here
-EOT
+# Note: SSH keys and network configuration are handled via NixOS configs
+# See nix/hosts/ for node-specific configurations

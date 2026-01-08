@@ -25,7 +25,7 @@ variable "proxmox_node" {
 variable "template_name" {
   description = "Name of the VM template to clone"
   type        = string
-  default     = "ubuntu-template"
+  default     = "nixos-template"
 }
 
 variable "storage" {
@@ -34,14 +34,8 @@ variable "storage" {
   default     = "local-lvm"
 }
 
-variable "ssh_keys" {
-  description = "SSH public keys for cloud-init"
-  type        = string
-  default     = ""
-}
-
 variable "default_user" {
-  description = "Default cloud-init user"
+  description = "Default user (for reference, actual users configured via NixOS)"
   type        = string
-  default     = "ubuntu"
+  default     = "daniel"
 }

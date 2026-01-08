@@ -1,4 +1,5 @@
 # K3s Master Node
+# Note: Network and user configuration will be handled by NixOS configs, not cloud-init
 resource "proxmox_vm_qemu" "k3s_master" {
   name        = "k3s-master"
   target_node = var.proxmox_node
@@ -10,11 +11,8 @@ resource "proxmox_vm_qemu" "k3s_master" {
   sockets = 1
   scsihw  = "virtio-scsi-pci"
 
-  os_type    = "cloud-init"
-  ciuser     = var.default_user
-  sshkeys    = var.ssh_keys
-  ipconfig0  = "ip=10.0.2.10/24,gw=10.0.2.1"
-  nameserver = "1.1.1.1"
+  # NixOS doesn't use cloud-init - configuration is handled via NixOS configs
+  # Network and user setup will be done via deploy_nixos or similar
 
   disk {
     type    = "scsi"
@@ -35,6 +33,7 @@ resource "proxmox_vm_qemu" "k3s_master" {
 }
 
 # K3s Worker Nodes
+# Note: Network and user configuration will be handled by NixOS configs, not cloud-init
 resource "proxmox_vm_qemu" "k3s_workers" {
   count = 2
 
@@ -48,10 +47,8 @@ resource "proxmox_vm_qemu" "k3s_workers" {
   sockets = 1
   scsihw  = "virtio-scsi-pci"
 
-  os_type   = "cloud-init"
-  ciuser    = var.default_user
-  sshkeys   = var.ssh_keys
-  ipconfig0 = "ip=10.0.2.${11 + count.index}/24,gw=10.0.2.1"
+  # NixOS doesn't use cloud-init - configuration is handled via NixOS configs
+  # Network and user setup will be done via deploy_nixos or similar
 
   disk {
     type    = "scsi"
