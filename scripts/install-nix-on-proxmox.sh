@@ -126,16 +126,23 @@ ssh "$PROXMOX_HOST" << 'EOF'
     -o result
 
   # Convert to qcow2
+  # nixos-generators may output nixos.raw or nixos.img depending on format
+  RAW_IMAGE=""
   if [ -f result/nixos.raw ]; then
-    echo "Converting to qcow2..."
-    qemu-img convert -f raw -O qcow2 result/nixos.raw nixos-template.qcow2
-    ls -lh nixos-template.qcow2
-    echo "✅ Image built: ~/homelab-build/nix/nixos-template.qcow2"
+    RAW_IMAGE="result/nixos.raw"
+  elif [ -f result/nixos.img ]; then
+    RAW_IMAGE="result/nixos.img"
   else
-    echo "❌ Error: Could not find result/nixos.raw"
+    echo "❌ Error: Could not find result/nixos.raw or result/nixos.img"
+    echo "Contents of result/:"
     ls -la result/
     exit 1
   fi
+
+  echo "Converting $RAW_IMAGE to qcow2..."
+  qemu-img convert -f raw -O qcow2 "$RAW_IMAGE" nixos-template.qcow2
+  ls -lh nixos-template.qcow2
+  echo "✅ Image built: ~/homelab-build/nix/nixos-template.qcow2"
 EOF
 
 echo ""
