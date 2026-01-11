@@ -6,21 +6,21 @@ resource "proxmox_vm_qemu" "k3s_master" {
   clone       = var.template_name
   full_clone  = true
 
-  cores   = 2
-  memory  = 2048 # 2 GB
-  sockets = 1
-  scsihw  = "virtio-scsi-pci"
+  memory = 2048 # 2 GB
+  scsihw = "virtio-scsi-pci"
 
-  # NixOS doesn't use cloud-init - configuration is handled via NixOS configs
-  # Network and user setup will be done via deploy_nixos or similar
+  cpu {
+    cores = 2
+  }
 
   disk {
-    type    = "scsi"
     storage = var.storage
     size    = "25G"
+    slot    = "virtio0"
   }
 
   network {
+    id     = 0
     bridge = "vmbr0"
     model  = "virtio"
   }
@@ -42,21 +42,21 @@ resource "proxmox_vm_qemu" "k3s_workers" {
   clone       = var.template_name
   full_clone  = true
 
-  cores   = 2
-  memory  = 2048 # 2 GB
-  sockets = 1
-  scsihw  = "virtio-scsi-pci"
+  memory = 2048 # 2 GB
+  scsihw = "virtio-scsi-pci"
 
-  # NixOS doesn't use cloud-init - configuration is handled via NixOS configs
-  # Network and user setup will be done via deploy_nixos or similar
+  cpu {
+    cores = 2
+  }
 
   disk {
-    type    = "scsi"
     storage = var.storage
     size    = "25G"
+    slot    = "virtio0"
   }
 
   network {
+    id     = 0
     bridge = "vmbr0"
     model  = "virtio"
   }
