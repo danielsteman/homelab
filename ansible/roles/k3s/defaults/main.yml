@@ -1,5 +1,0 @@
----
-# Default variables for k3s role
-
-k3s_role: server  # 'server' or 'agent'
-k3s_version: ""   # Empty for latest, or specify e.g., "v1.28.4+k3s1"
