@@ -27,6 +27,7 @@ Prometheus monitoring and alerting toolkit for the homelab, including node-expor
 - Cluster health and quorum status
 - **Use this for**: Individual VM resources, storage pools, cluster status
 - Requires Proxmox API credentials
+- Official exporter: [prometheus-pve/prometheus-pve-exporter](https://github.com/prometheus-pve/prometheus-pve-exporter)
 
 **They work together**: Node-exporter shows what the host is doing, pve-exporter shows what your VMs are doing.
 
@@ -51,38 +52,42 @@ Prometheus monitoring and alerting toolkit for the homelab, including node-expor
 
    **Option A: Use API Token (Recommended)**
 
-   - Create API token in Proxmox: Datacenter → Permissions → API Tokens
-   - Set `PVE_TOKEN_ID` and `PVE_TOKEN_SECRET` in `.env`
-   - Comment out `PVE_USERNAME` and `PVE_PASSWORD` in `compose.yml`
+   - Create Prometheus user and token on Proxmox host:
+     ```bash
+     pveum user add prometheus@pve --comment "Prometheus monitoring user"
+     pveum user modify prometheus@pve -group PVEAuditor
+     pveum user token add prometheus@pve prometheus --privsep 0
+     ```
+   - Get token secret: `pveum user token list prometheus@pve | grep prometheus | awk '{print $NF}'`
+   - Set in `.env`:
+     ```bash
+     PVE_USER=prometheus@pve
+     PVE_TOKEN_NAME=prometheus
+     PVE_TOKEN_VALUE=<paste-secret-here>
+     ```
 
    **Option B: Use Username/Password**
 
-   - Set `PVE_USERNAME` and `PVE_PASSWORD` in `.env`
+   - Set `PVE_USER` and `PVE_PASSWORD` in `.env`
    - Less secure, but simpler for testing
 
-3. **Update `.env`** with your Proxmox host IP:
-
-   ```bash
-   PVE_URL=https://192.168.1.100:8006/api2/json  # Replace with your IP
-   ```
-
-4. Start all services:
+3. Start all services:
 
    ```bash
    docker compose up -d
    ```
 
-5. Verify exporters are working:
+4. Verify exporters are working:
 
    ```bash
    # Node exporter (system metrics)
    curl http://localhost:9100/metrics
 
    # PVE exporter (Proxmox metrics)
-   curl http://localhost:9221/metrics
+   curl http://localhost:9221/pve?module=default&cluster=1&node=1
    ```
 
-6. Access Prometheus UI:
+5. Access Prometheus UI:
    - Direct: http://localhost:9090
    - Via Traefik: http://prometheus.cluster.fuck
 
