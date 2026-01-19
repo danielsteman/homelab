@@ -47,6 +47,30 @@ services:
     network_mode: host
     pid: host
 
+  #######################################################
+  #  PVE Exporter - Proxmox VE Specific Metrics
+  #######################################################
+  pve-exporter:
+    image: prometheuscommunity/pve-exporter:latest
+    container_name: pve-exporter
+    restart: unless-stopped
+    ports:
+      - "9221:9221"
+    env_file:
+      - .env
+    environment:
+      # Proxmox API URL (update IP address in .env)
+      - PVE_URL=${PVE_URL:-https://192.168.1.100:8006/api2/json}
+      # API Token authentication (recommended - set in .env)
+      - PVE_TOKEN_ID=${PVE_TOKEN_ID:-}
+      - PVE_TOKEN_SECRET=${PVE_TOKEN_SECRET:-}
+      # Username/Password authentication (alternative - set in .env)
+      - PVE_USERNAME=${PVE_USERNAME:-}
+      - PVE_PASSWORD=${PVE_PASSWORD:-}
+      - PVE_VERIFY_SSL=false
+    networks:
+      - proxy
+
 volumes:
   prometheus_data:
 

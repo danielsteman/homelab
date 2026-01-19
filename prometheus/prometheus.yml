@@ -21,3 +21,10 @@ scrape_configs:
       - targets: ["localhost:9100"]
         labels:
           instance: "proxmox-host"
+
+  # PVE Exporter - Proxmox VE specific metrics (VMs, storage, cluster)
+  - job_name: "pve-exporter"
+    static_configs:
+      - targets: ["pve-exporter:9221"]
+        labels:
+          instance: "proxmox-host"
