@@ -183,18 +183,20 @@ homelab/
 ├── homeassistant/              # Home Assistant config
 ├── bitwarden/                  # Bitwarden config
 ├── minio/                      # S3-compatible storage
+├── prometheus/                 # Prometheus + node-exporter monitoring
 └── k3s/                        # K3s related configs
 ```
 
 ## Services
 
-| Service        | Description                      |
-| -------------- | -------------------------------- |
-| Home Assistant | Home automation                  |
-| Traefik        | Reverse proxy                    |
-| Bitwarden      | Password manager                 |
-| MinIO          | S3-compatible storage (TF state) |
-| K3s            | Lightweight Kubernetes           |
+| Service        | Description                             |
+| -------------- | --------------------------------------- |
+| Home Assistant | Home automation                         |
+| Traefik        | Reverse proxy                           |
+| Bitwarden      | Password manager                        |
+| MinIO          | S3-compatible storage (TF state)        |
+| Prometheus     | Metrics collection (with node-exporter) |
+| K3s            | Lightweight Kubernetes                  |
 
 ## License
 
