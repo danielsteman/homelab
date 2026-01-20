@@ -23,8 +23,14 @@ scrape_configs:
           instance: "proxmox-host"
 
   # PVE Exporter - Proxmox VE specific metrics (VMs, storage, cluster)
+  # Official exporter: https://github.com/prometheus-pve/prometheus-pve-exporter
   - job_name: "pve-exporter"
     static_configs:
       - targets: ["pve-exporter:9221"]
         labels:
           instance: "proxmox-host"
+    metrics_path: /pve
+    params:
+      module: [default]
+      cluster: ["1"] # Enable cluster metrics
+      node: ["1"] # Enable node metrics

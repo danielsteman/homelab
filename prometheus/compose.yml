@@ -50,8 +50,9 @@ services:
   #######################################################
   #  PVE Exporter - Proxmox VE Specific Metrics
   #######################################################
+  # Official exporter: https://github.com/prometheus-pve/prometheus-pve-exporter
   pve-exporter:
-    image: prometheuscommunity/pve-exporter:latest
+    image: prompve/prometheus-pve-exporter:latest
     container_name: pve-exporter
     restart: unless-stopped
     ports:
@@ -59,15 +60,17 @@ services:
     env_file:
       - .env
     environment:
-      # Proxmox API URL (update IP address in .env)
-      - PVE_URL=${PVE_URL:-https://192.168.1.100:8006/api2/json}
+      # Proxmox user (set in .env)
+      - PVE_USER=${PVE_USER:-prometheus@pve}
       # API Token authentication (recommended - set in .env)
-      - PVE_TOKEN_ID=${PVE_TOKEN_ID:-}
-      - PVE_TOKEN_SECRET=${PVE_TOKEN_SECRET:-}
+      - PVE_TOKEN_NAME=${PVE_TOKEN_NAME:-prometheus}
+      - PVE_TOKEN_VALUE=${PVE_TOKEN_VALUE:-}
       # Username/Password authentication (alternative - set in .env)
-      - PVE_USERNAME=${PVE_USERNAME:-}
       - PVE_PASSWORD=${PVE_PASSWORD:-}
-      - PVE_VERIFY_SSL=false
+      # SSL verification (set to false for self-signed certs)
+      - PVE_VERIFY_SSL=${PVE_VERIFY_SSL:-false}
+      # Configuration module name
+      - PVE_MODULE=${PVE_MODULE:-default}
     networks:
       - proxy
 
