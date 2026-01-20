@@ -155,23 +155,14 @@
   mode: single
 - id: '1761838049827'
   alias: Turn off all lights when leaving home
-  description: ''
   triggers:
-  - trigger: zone
-    entity_id: person.daniel
-    zone: zone.home
-    event: leave
-  conditions: []
+  - entity_id: person.daniel
+    to: not_home
+    trigger: state
   actions:
-  - action: light.turn_off
-    metadata: {}
-    data: {}
-    target:
-      area_id:
-      - bedroom
-      - kitchen
-      - living_room
-  mode: single
+  - target:
+      entity_id: all
+    action: light.turn_off
 - id: '1763674783914'
   alias: Turn off heating when leaving
   description: ''

@@ -3,7 +3,7 @@ services:
   #  Prometheus - Metrics Collection & Storage
   #######################################################
   prometheus:
-    image: prom/prometheus:latest
+    image: prompve/prometheus-pve-exporter:latest
     container_name: prometheus
     restart: unless-stopped
     command:
