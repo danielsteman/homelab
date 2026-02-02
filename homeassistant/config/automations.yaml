@@ -154,7 +154,8 @@
       area_id: living_room
   mode: single
 - id: '1761838049827'
-  alias: Turn off all lights when leaving home
+  alias: Turn off lights and set thermostat when leaving home
+  description: ''
   triggers:
   - entity_id: person.daniel
     to: not_home
@@ -162,24 +163,13 @@
   actions:
   - target:
       entity_id: all
+    data: {}
     action: light.turn_off
-- id: '1763674783914'
-  alias: Turn off heating when leaving
-  description: ''
-  triggers:
-  - device_id: 9179a2f05cb186242144eb29ea87d28a
-    domain: device_tracker
-    entity_id: 0e8291c505349abe8a24133be2499148
-    type: leaves
-    trigger: device
-    zone: zone.home
-  conditions: []
-  actions:
-  - device_id: 0d89873dea6dfcae9f9856163966cfd8
-    domain: climate
-    entity_id: 1eff6989cd1cba05104dda2afd371548
-    type: set_preset_mode
-    preset_mode: VacationHold
+  - target:
+      entity_id: climate.thermostat_thermostat
+    data:
+      temperature: 16.5
+    action: climate.set_temperature
   mode: single
 - id: '1764863934572'
   alias: Operate hallway light on motion
@@ -212,4 +202,57 @@
       - kitchen
       - living_room
       - study
+  mode: single
+- id: '1770062522320'
+  alias: Study occupancy switched lights (RGB orange, specific daylight window)
+  description: ''
+  triggers:
+  - device_id: 3e02d9ad46133ab79a746f0e0e9db074
+    entity_id: 4448473038e08a5eb43d28966a561a26
+    domain: binary_sensor
+    type: occupied
+    id: room_occupied
+    trigger: device
+  - device_id: 3e02d9ad46133ab79a746f0e0e9db074
+    entity_id: 4448473038e08a5eb43d28966a561a26
+    domain: binary_sensor
+    type: not_occupied
+    id: room_not_occupied
+    trigger: device
+  conditions:
+  - condition: and
+    conditions:
+    - condition: sun
+      after: sunrise
+      after_offset: -01:30:00
+    - condition: sun
+      before: sunset
+      before_offset: +01:30:00
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: room_occupied
+      sequence:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          rgb_color:
+          - 255
+          - 100
+          - 0
+          brightness_pct: 25
+          transition: 2
+        target:
+          area_id: study
+    - conditions:
+      - condition: trigger
+        id: room_not_occupied
+      sequence:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          area_id: study
   mode: single
