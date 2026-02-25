@@ -63,23 +63,33 @@
       device_id: b7dd841239a97ff298dc866b1eac5b6b
   mode: single
 - id: '1736409255297'
-  alias: Switch on living room lights
-  description: Switch on living room lights when there is no sun light
+  alias: Toggle living room lights by motion
+  description: Toggle living room lights by motion when there is no sun light
   triggers:
-  - device_id: 0f1ac3694243722d548c2ba88a91828b
-    domain: hue
-    type: initial_press
-    subtype: 1
-    unique_id: cdbcdd56-7687-43e3-89fb-b7c885bc21ff
+  - type: motion
+    device_id: f0e8a5949f45150b38afffb79237f57f
+    entity_id: 692ca957fabcd5dd17262744b7045ebf
+    domain: binary_sensor
     trigger: device
-  conditions: []
+  conditions:
+  - type: is_off
+    condition: device
+    device_id: 9179a2f05cb186242144eb29ea87d28a
+    entity_id: 2ab2e55a8c43b150f38bd6f8d36bd960
+    domain: binary_sensor
+  - condition: and
+    conditions:
+    - condition: sun
+      after: sunrise
+      after_offset: +01:30:00
+    - condition: sun
+      before: sunset
+      before_offset: -01:30:00
   actions:
-  - action: light.turn_on
-    metadata: {}
-    data:
-      kelvin: 2000
+  - action: scene.turn_on
     target:
-      area_id: living_room
+      entity_id: scene.chilled_at_night
+    data: {}
   mode: single
 - id: '1736409446078'
   alias: Turn off living room lights
@@ -108,11 +118,12 @@
     from: 'off'
     to: 'on'
   actions:
-  - alias: Turn on the light
+  - alias: Turn on the light to full brightness
     action: light.turn_on
     target:
       area_id: kitchen
-    data: {}
+    data:
+      brightness_pct: 100
   - alias: Wait until there is no motion from device
     wait_for_trigger:
       trigger: state
@@ -121,38 +132,31 @@
       to: 'off'
   - alias: Wait the number of seconds that has been set
     delay: 120
-  - alias: Turn off the light
-    action: light.turn_off
-    target:
-      area_id: kitchen
-    data: {}
+  - alias: Check if Daniel is home and phone is not on silent
+    if:
+    - condition: and
+      conditions:
+      - condition: state
+        entity_id: person.daniel
+        state: home
+      - condition: state
+        entity_id: binary_sensor.2ab2e55a8c43b150f38bd6f8d36bd960
+        state: 'off'
+    then:
+    - alias: Dim the light to 30%
+      action: light.turn_on
+      target:
+        area_id: kitchen
+      data:
+        brightness_pct: 30
+    else:
+    - alias: Turn off the light
+      action: light.turn_off
+      target:
+        area_id: kitchen
+      data: {}
   mode: restart
   max_exceeded: silent
-- id: '1753637902384'
-  alias: Turn on living room lights
-  description: Turn on living room lights when home and after sunset and before sunrise
-  triggers:
-  - type: motion
-    device_id: f0e8a5949f45150b38afffb79237f57f
-    entity_id: 692ca957fabcd5dd17262744b7045ebf
-    domain: binary_sensor
-    trigger: device
-  conditions:
-  - condition: sun
-    after: sunset
-    before: sunrise
-  - type: is_off
-    condition: device
-    device_id: 9179a2f05cb186242144eb29ea87d28a
-    entity_id: 2ab2e55a8c43b150f38bd6f8d36bd960
-    domain: binary_sensor
-  actions:
-  - action: light.turn_on
-    metadata: {}
-    data: {}
-    target:
-      area_id: living_room
-  mode: single
 - id: '1761838049827'
   alias: Turn off lights and set thermostat when leaving home
   description: ''
@@ -165,11 +169,6 @@
       entity_id: all
     data: {}
     action: light.turn_off
-  - target:
-      entity_id: climate.thermostat_thermostat
-    data:
-      temperature: 16.5
-    action: climate.set_temperature
   mode: single
 - id: '1764863934572'
   alias: Operate hallway light on motion
@@ -177,7 +176,7 @@
   use_blueprint:
     path: homeassistant/motion_light.yaml
     input:
-      motion_entity: binary_sensor.motion_sensor_2_motion
+      motion_entity: binary_sensor.hallway_motion_sensor_motion
       light_target:
         area_id: hallway
       no_motion_wait: 10
@@ -224,10 +223,10 @@
     conditions:
     - condition: sun
       after: sunrise
-      after_offset: -01:30:00
+      after_offset: +01:30:00
     - condition: sun
       before: sunset
-      before_offset: +01:30:00
+      before_offset: -01:30:00
   actions:
   - choose:
     - conditions:
@@ -255,4 +254,40 @@
           transition: 2
         target:
           area_id: study
+  mode: single
+- id: '1772036141519'
+  alias: Set temperature when entering or leaving home
+  description: ''
+  triggers:
+  - trigger: zone
+    entity_id: person.daniel
+    zone: zone.home
+    event: enter
+    id: enter
+  - trigger: zone
+    entity_id: person.daniel
+    zone: zone.home
+    event: leave
+    id: leave
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: enter
+      sequence:
+      - action: climate.set_temperature
+        target:
+          entity_id: climate.thermostat_thermostat
+        data:
+          temperature: 18.5
+    - conditions:
+      - condition: trigger
+        id: leave
+      sequence:
+      - action: climate.set_temperature
+        target:
+          entity_id: climate.thermostat_thermostat
+        data:
+          temperature: 16.5
   mode: single
