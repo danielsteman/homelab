@@ -92,18 +92,18 @@
     data: {}
   mode: single
 - id: '1736409446078'
-  alias: Turn off living room lights
-  description: Turn off living room lights after sun rise or when it is 2230
+  alias: Toggle living room lights with remote
+  description: Toggle living room lights with remote
   triggers:
   - device_id: 0f1ac3694243722d548c2ba88a91828b
     domain: hue
     type: initial_press
-    subtype: 4
-    unique_id: 5862ab8b-61ae-4834-9dd0-fccbfc7fa13d
+    subtype: 1
+    unique_id: cdbcdd56-7687-43e3-89fb-b7c885bc21ff
     trigger: device
   conditions: []
   actions:
-  - action: light.turn_off
+  - action: light.toggle
     metadata: {}
     data: {}
     target:
