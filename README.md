@@ -183,6 +183,7 @@ homelab/
 ├── homeassistant/              # Home Assistant config
 ├── bitwarden/                  # Bitwarden config
 ├── minio/                      # S3-compatible storage
+├── harbor/                     # Harbor OCI/Docker registry
 ├── prometheus/                 # Prometheus + node-exporter monitoring
 └── k3s/                        # K3s related configs
 ```
@@ -195,6 +196,7 @@ homelab/
 | Traefik        | Reverse proxy                           |
 | Bitwarden      | Password manager                        |
 | MinIO          | S3-compatible storage (TF state)        |
+| Harbor         | OCI/Docker registry (UI, RBAC, optional Trivy) |
 | Prometheus     | Metrics collection (with node-exporter) |
 | K3s            | Lightweight Kubernetes                  |
 

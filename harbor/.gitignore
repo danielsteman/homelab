@@ -1,0 +1,8 @@
+# Runtime data and generated installer output
+data/
+docker-compose.yml
+input/
+
+# Populated by goharbor/prepare — do not commit (regenerate with ./prepare)
+common/config/**
+!common/config/.gitkeep
