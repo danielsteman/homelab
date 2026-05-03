@@ -80,11 +80,11 @@
   - condition: and
     conditions:
     - condition: sun
-      after: sunrise
-      after_offset: +01:30:00
+      before: sunrise
+      before_offset: +01:30:00
     - condition: sun
-      before: sunset
-      before_offset: -01:30:00
+      after: sunset
+      after_offset: -01:30:00
   actions:
   - action: scene.turn_on
     target:
@@ -218,15 +218,7 @@
     type: not_occupied
     id: room_not_occupied
     trigger: device
-  conditions:
-  - condition: and
-    conditions:
-    - condition: sun
-      after: sunrise
-      after_offset: +01:30:00
-    - condition: sun
-      before: sunset
-      before_offset: -01:30:00
+  conditions: []
   actions:
   - choose:
     - conditions:
@@ -259,35 +251,48 @@
   alias: Set temperature when entering or leaving home
   description: ''
   triggers:
-  - trigger: zone
+  - trigger: state
     entity_id: person.daniel
-    zone: zone.home
-    event: enter
+    from: not_home
+    to: home
+    for: 00:01:00
     id: enter
-  - trigger: zone
+  - trigger: state
     entity_id: person.daniel
-    zone: zone.home
-    event: leave
+    from: home
+    to: not_home
+    for: 00:03:00
     id: leave
+  - trigger: homeassistant
+    event: start
+    id: startup
   conditions: []
   actions:
+  - variables:
+      is_home: '{{ is_state(''person.daniel'', ''home'') }}'
+      current_temp: '{{ state_attr(''climate.thermostat_thermostat'', ''temperature'')
+        | float(0) }}'
+      target_temp_home: 18.5
+      target_temp_away: 16.5
   - choose:
     - conditions:
-      - condition: trigger
-        id: enter
+      - condition: template
+        value_template: "{{ (trigger.id == 'enter' or (trigger.id == 'startup' and
+          is_home))\n   and current_temp != target_temp_home }}\n"
       sequence:
       - action: climate.set_temperature
         target:
           entity_id: climate.thermostat_thermostat
         data:
-          temperature: 18.5
+          temperature: '{{ target_temp_home }}'
     - conditions:
-      - condition: trigger
-        id: leave
+      - condition: template
+        value_template: "{{ (trigger.id == 'leave' or (trigger.id == 'startup' and
+          not is_home))\n   and current_temp != target_temp_away }}\n"
       sequence:
       - action: climate.set_temperature
         target:
           entity_id: climate.thermostat_thermostat
         data:
-          temperature: 16.5
-  mode: single
+          temperature: '{{ target_temp_away }}'
+  mode: restart
