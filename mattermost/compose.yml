@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      POSTGRES_USER: mattermost
+      POSTGRES_PASSWORD: your_strong_password
+      POSTGRES_DB: mattermost
+    volumes:
+      - ./volumes/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mattermost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  mattermost:
+    image: mattermost/mattermost-team-edition:latest
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: postgres://mattermost:your_strong_password@postgres:5432/mattermost?sslmode=disable&connect_timeout=10
+      MM_BLEVESETTINGS_INDEXDIR: /mattermost/bleve-indexes
+      MM_SERVICESETTINGS_SITEURL: https://chat.danielsteman.com
+    volumes:
+      - ./volumes/mattermost/config:/mattermost/config:rw
+      - ./volumes/mattermost/data:/mattermost/data:rw
+      - ./volumes/mattermost/logs:/mattermost/logs:rw
+      - ./volumes/mattermost/plugins:/mattermost/plugins:rw
+      - ./volumes/mattermost/client-plugins:/mattermost/client/plugins:rw
+      - ./volumes/mattermost/bleve-indexes:/mattermost/bleve-indexes:rw
+    networks:
+      - internal
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mattermost.rule=Host(`chat.danielsteman.com`)"
+      - "traefik.http.routers.mattermost.entrypoints=https"
+      - "traefik.http.routers.mattermost.tls.certresolver=cloudflare"
+      - "traefik.http.services.mattermost.loadbalancer.server.port=8065"
+      - "traefik.http.middlewares.mattermost-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.mattermost.middlewares=mattermost-headers"
+      - "traefik.docker.network=proxy"
+
+networks:
+  internal:
+    internal: true
+  proxy:
+    external: true
