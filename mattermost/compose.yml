@@ -6,7 +6,7 @@ services:
       - no-new-privileges:true
     environment:
       POSTGRES_USER: mattermost
-      POSTGRES_PASSWORD: your_strong_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: mattermost
     volumes:
       - ./volumes/db:/var/lib/postgresql/data
@@ -28,7 +28,7 @@ services:
         condition: service_healthy
     environment:
       MM_SQLSETTINGS_DRIVERNAME: postgres
-      MM_SQLSETTINGS_DATASOURCE: postgres://mattermost:your_strong_password@postgres:5432/mattermost?sslmode=disable&connect_timeout=10
+      MM_SQLSETTINGS_DATASOURCE: postgres://mattermost:${POSTGRES_PASSWORD}@postgres:5432/mattermost?sslmode=disable&connect_timeout=10
       MM_BLEVESETTINGS_INDEXDIR: /mattermost/bleve-indexes
       MM_SERVICESETTINGS_SITEURL: https://chat.danielsteman.com
     volumes:
