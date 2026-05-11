@@ -1,0 +1,23 @@
+general:
+  app_url: 'https://strava.danielsteman.com/'
+  profile_picture_url: null
+  athlete:
+    birthday: '1995-04-13'
+    max_heart_rate_formula: 'fox'
+    weight_history:
+      "2026-05-11": 85
+    ftp_history: {}
+appearance:
+  locale: 'nl_BE'
+  unit_system: 'metric'
+  time_format: 24
+  date_format: 'DAY-MONTH-YEAR'
+import:
+  number_of_new_activities_to_process_per_import: 250
+  sport_types_to_import: []
+  activity_visibilities_to_import: []
+  skip_activities_recorded_before: null
+  activities_to_skip_during_import: []
+zwift:
+  level: 1
+  racing_score: 0

@@ -1,0 +1,8 @@
+general:
+  app_url: 'https://strava.danielsteman.com/'
+
+appearance:
+  locale: 'nl_NL'
+  unit_system: 'metric'
+  time_format: 24
+  date_format: 'DAY-MONTH-YEAR'

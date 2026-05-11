@@ -1,0 +1,54 @@
+services:
+  app:
+    image: robiningelbrecht/strava-statistics:latest
+    container_name: statistics-for-strava
+    restart: unless-stopped
+    volumes:
+      - ./config:/var/www/config/app
+      - ./build:/var/www/build
+      - ./storage/database:/var/www/storage/database
+      - ./storage/files:/var/www/storage/files
+    env_file: ./.env
+    environment:
+      - TZ=Europe/Amsterdam
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2019/metrics"]
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.strava.rule=Host(`strava.danielsteman.com`)"
+      - "traefik.http.routers.strava.entrypoints=https"
+      - "traefik.http.routers.strava.tls.certresolver=cloudflare"
+      - "traefik.http.services.strava.loadbalancer.server.port=8080"
+      - "traefik.http.routers.strava-insecure.rule=Host(`strava.danielsteman.com`)"
+      - "traefik.http.routers.strava-insecure.entrypoints=http"
+      - "traefik.http.routers.strava-insecure.middlewares=redirect-to-https"
+      - "traefik.docker.network=proxy"
+    networks:
+      - proxy
+      - internal
+
+  daemon:
+    image: robiningelbrecht/strava-statistics:latest
+    container_name: statistics-for-strava-daemon
+    restart: unless-stopped
+    volumes:
+      - ./config:/var/www/config/app
+      - ./build:/var/www/build
+      - ./storage/database:/var/www/storage/database
+      - ./storage/files:/var/www/storage/files
+    env_file: ./.env
+    environment:
+      - TZ=Europe/Amsterdam
+    healthcheck:
+      test: ["CMD", "sh", "-c", "test -f /var/www/storage/database/strava.db && echo 'ok' || exit 1"]
+      start_period: 5s
+    command: ['bin/console', 'app:daemon:run']
+    networks:
+      - internal
+
+networks:
+  proxy:
+    external: true
+  internal:
+    name: statistics-for-strava-network
