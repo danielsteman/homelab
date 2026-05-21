@@ -20,7 +20,9 @@ services:
       - "traefik.http.services.homer.loadbalancer.server.port=8080"
       - "traefik.http.routers.homer-insecure.rule=Host(`status.danielsteman.com`)"
       - "traefik.http.routers.homer-insecure.entrypoints=http"
-      - "traefik.http.routers.homer-insecure.middlewares=redirect-to-https"
+      - "traefik.http.routers.homer-insecure.middlewares=homer-redirect-to-https"
+      - "traefik.http.middlewares.homer-redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.homer-redirect-to-https.redirectscheme.permanent=true"
       - "traefik.docker.network=proxy"
 
 networks:
