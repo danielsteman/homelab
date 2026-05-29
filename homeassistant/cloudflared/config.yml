@@ -1,0 +1,10 @@
+# Replace <TUNNEL_ID> with the UUID printed by `cloudflared tunnel create homelab`.
+# The credentials JSON for that tunnel must live next to this file at
+# ./cloudflared/<TUNNEL_ID>.json (gitignored by *.json).
+tunnel: 3f67ddbf-7715-4d34-ac54-21e9112977e8
+credentials-file: /etc/cloudflared/3f67ddbf-7715-4d34-ac54-21e9112977e8.json
+
+ingress:
+  - hostname: homelab.danielsteman.com
+    service: http://traefik:80
+  - service: http_status:404

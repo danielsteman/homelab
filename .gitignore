@@ -16,6 +16,10 @@ logs
 __pycache__
 *.pyc
 
+# Local-only Docker Compose overrides (machine-specific testing)
+compose.override.yml
+docker-compose.override.yml
+
 # Other
 *.uuid
 *.conf

@@ -9,13 +9,13 @@ services:
     restart: unless-stopped
     command:
       - "--log.level=INFO"
-      - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entryPoints.http.address=:80"
       - "--entryPoints.https.address=:443"
       - "--entryPoints.https.http.tls=true"
       # --- ACME Config (Cloudflare DNS challenge) ---
+      # Still used by other services (e.g. chat.danielsteman.com via Mattermost).
       - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
       - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1:53"
       - "--certificatesresolvers.cloudflare.acme.email=me@danielsteman.com"
@@ -23,22 +23,30 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      # This volume stores your SSL certs (acme.json)
       - ./letsencrypt:/letsencrypt
     networks:
       - proxy
     environment:
-      - CLOUDFLARE_DNS_API_TOKEN=${CF_API_TOKEN} # Add your Cloudflare API Token here
-  whoami:
-    image: "traefik/whoami"
-    container_name: "simple-service"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.cluster.fuck`)"
-      - "traefik.http.routers.whoami.entrypoints=http"
+      - CLOUDFLARE_DNS_API_TOKEN=${CF_API_TOKEN}
+
+  #######################################################
+  #  Cloudflare Tunnel (cloudflared)
+  #  Routes homelab.danielsteman.com -> traefik:80 over an outbound tunnel.
+  #  No inbound ports need to be forwarded on the router for HA.
+  #######################################################
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --config /etc/cloudflared/config.yml run
+    volumes:
+      - ./cloudflared:/etc/cloudflared:ro
+    networks:
+      - proxy
+    depends_on:
+      - traefik
 
   #######################################################
   #  Home Assistant
@@ -51,51 +59,18 @@ services:
       - proxy
     environment:
       - HASSIO_CONFIG=/config
-    ports:
-      - "8123:8123"
     volumes:
       - ./config:/config
-      - ./letsencrypt:/ssl
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
     labels:
       - "traefik.enable=true"
-
-      # Use HTTPS entrypoint
-      - 'traefik.http.routers.homeassistant.rule=Host("homelab.danielsteman.com")'
-      - "traefik.http.routers.homeassistant.entrypoints=https"
-      - "traefik.http.routers.homeassistant.tls=true"
-
-      # Specify the cert resolver (must match the name you used in Traefik command)
-      - "traefik.http.routers.homeassistant.tls.certresolver=cloudflare"
-
-      # Home Assistant by default listens on port 8123, so let Traefik know
+      # TLS is terminated at the Cloudflare edge; the tunnel reaches Traefik over plain http on the proxy network.
+      - 'traefik.http.routers.homeassistant.rule=Host(`homelab.danielsteman.com`)'
+      - "traefik.http.routers.homeassistant.entrypoints=http"
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
-
-      # HTTP->HTTPS redirect:
-      - 'traefik.http.routers.ha-insecure.rule=Host("homelab.danielsteman.com")'
-      - "traefik.http.routers.ha-insecure.entrypoints=http"
-      - "traefik.http.routers.ha-insecure.middlewares=redirect-to-https"
-
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
-
-  #######################################################
-  #  Cloudflare DDNS
-  #######################################################
-  cloudflare-ddns:
-    image: oznu/cloudflare-ddns:latest
-    container_name: cloudflare-ddns
-    restart: always
-    environment:
-      - API_KEY=${CF_API_TOKEN} # Cloudflare API Token with DNS edit permissions
-      - ZONE=danielsteman.com # Your Cloudflare Zone
-      - SUBDOMAIN=homelab # Subdomain to update (homelab.danielsteman.com)
-      - PROXIED=true # Set to true to enable Cloudflare proxy (orange cloud)
-    networks:
-      - proxy
 
 networks:
   proxy:
