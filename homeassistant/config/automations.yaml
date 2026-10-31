@@ -15,7 +15,7 @@
     metadata: {}
     data:
       transition: 1
-      kelvin: 2944
+      color_temp_kelvin: 2944
       brightness_pct: 50
     target:
       area_id: bedroom
@@ -58,7 +58,8 @@
   - action: light.turn_on
     metadata: {}
     data:
-      kelvin: 2000
+      color_temp_kelvin: 2000
+      brightness_pct: 20
     target:
       device_id: b7dd841239a97ff298dc866b1eac5b6b
   mode: single
@@ -140,7 +141,7 @@
         entity_id: person.daniel
         state: home
       - condition: state
-        entity_id: binary_sensor.2ab2e55a8c43b150f38bd6f8d36bd960
+        entity_id: binary_sensor.iphone_van_daniel_focus
         state: 'off'
     then:
     - alias: Dim the light to 30%
@@ -203,21 +204,17 @@
       - study
   mode: single
 - id: '1770062522320'
-  alias: Study occupancy switched lights (RGB orange, specific daylight window)
+  alias: Bathroom occupancy switched lights
   description: ''
   triggers:
-  - device_id: 3e02d9ad46133ab79a746f0e0e9db074
-    entity_id: 4448473038e08a5eb43d28966a561a26
-    domain: binary_sensor
-    type: occupied
+  - trigger: state
+    entity_id: binary_sensor.ewelink_snzb_03p_occupancy
+    to: 'on'
     id: room_occupied
-    trigger: device
-  - device_id: 3e02d9ad46133ab79a746f0e0e9db074
-    entity_id: 4448473038e08a5eb43d28966a561a26
-    domain: binary_sensor
-    type: not_occupied
+  - trigger: state
+    entity_id: binary_sensor.ewelink_snzb_03p_occupancy
+    to: 'off'
     id: room_not_occupied
-    trigger: device
   conditions: []
   actions:
   - choose:
@@ -226,26 +223,19 @@
         id: room_occupied
       sequence:
       - action: light.turn_on
-        metadata: {}
         data:
-          rgb_color:
-          - 255
-          - 100
-          - 0
-          brightness_pct: 25
-          transition: 2
+          transition: 1
         target:
-          area_id: study
+          area_id: bathroom
     - conditions:
       - condition: trigger
         id: room_not_occupied
       sequence:
       - action: light.turn_off
-        metadata: {}
         data:
           transition: 2
         target:
-          area_id: study
+          area_id: bathroom
   mode: single
 - id: '1772036141519'
   alias: Set temperature when entering or leaving home

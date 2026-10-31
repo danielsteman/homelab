@@ -26,3 +26,4 @@ traefik-temp.yml
 config/.cache/
 config/.ha_run.lock
 config/custom_components/hacs/
+config/custom_components/aigostar/
