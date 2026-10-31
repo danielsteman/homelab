@@ -133,29 +133,11 @@
       to: 'off'
   - alias: Wait the number of seconds that has been set
     delay: 120
-  - alias: Check if Daniel is home and phone is not on silent
-    if:
-    - condition: and
-      conditions:
-      - condition: state
-        entity_id: person.daniel
-        state: home
-      - condition: state
-        entity_id: binary_sensor.iphone_van_daniel_focus
-        state: 'off'
-    then:
-    - alias: Dim the light to 30%
-      action: light.turn_on
-      target:
-        area_id: kitchen
-      data:
-        brightness_pct: 30
-    else:
-    - alias: Turn off the light
-      action: light.turn_off
-      target:
-        area_id: kitchen
-      data: {}
+  - alias: Turn off the light
+    action: light.turn_off
+    target:
+      area_id: kitchen
+    data: {}
   mode: restart
   max_exceeded: silent
 - id: '1761838049827'
