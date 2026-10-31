@@ -125,6 +125,7 @@
       area_id: kitchen
     data:
       brightness_pct: 100
+      color_temp_kelvin: 2475
   - alias: Wait until there is no motion from device
     wait_for_trigger:
       trigger: state
@@ -133,11 +134,30 @@
       to: 'off'
   - alias: Wait the number of seconds that has been set
     delay: 120
-  - alias: Turn off the light
-    action: light.turn_off
-    target:
-      area_id: kitchen
-    data: {}
+  - alias: Check if Daniel is home and phone is not on silent
+    if:
+    - condition: and
+      conditions:
+      - condition: state
+        entity_id: person.daniel
+        state: home
+      - condition: state
+        entity_id: binary_sensor.iphone_van_daniel_focus
+        state: 'off'
+    then:
+    - alias: Dim the light to 30%
+      action: light.turn_on
+      target:
+        area_id: kitchen
+      data:
+        brightness_pct: 30
+        color_temp_kelvin: 2475
+    else:
+    - alias: Turn off the light
+      action: light.turn_off
+      target:
+        area_id: kitchen
+      data: {}
   mode: restart
   max_exceeded: silent
 - id: '1761838049827'
