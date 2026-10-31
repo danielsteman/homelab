@@ -21,3 +21,8 @@ traefik-temp.yml
 
 # Accidentally created files (k8s endpoints?)
 *:*
+
+# Runtime / HACS-managed
+config/.cache/
+config/.ha_run.lock
+config/custom_components/hacs/
