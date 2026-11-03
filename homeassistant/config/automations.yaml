@@ -248,6 +248,9 @@
       - condition: trigger
         id: room_not_occupied
       sequence:
+      - wait_template: "{{ states('sensor.temperature_humidity_sensor_2_humidity') | float(0) < 75 }}"
+        timeout: '00:20:00'
+        continue_on_timeout: true
       - action: light.turn_off
         data:
           transition: 2
