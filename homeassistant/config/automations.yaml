@@ -216,7 +216,7 @@
   - trigger: state
     entity_id: binary_sensor.ewelink_snzb_03p_occupancy
     to: 'off'
-    for: 00:01:00
+    for: 00:02:00
     id: room_not_occupied
   conditions: []
   actions:
