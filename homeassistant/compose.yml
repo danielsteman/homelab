@@ -11,6 +11,7 @@ services:
       - "--log.level=INFO"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.filename=/etc/traefik/dynamic.yml"
       - "--entryPoints.http.address=:80"
       - "--entryPoints.https.address=:443"
       - "--entryPoints.https.http.tls=true"
@@ -26,6 +27,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./letsencrypt:/letsencrypt
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./traefik/claudius.htpasswd:/etc/traefik/claudius.htpasswd:ro
     networks:
       - proxy
     environment:

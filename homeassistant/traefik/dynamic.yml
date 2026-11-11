@@ -1,0 +1,44 @@
+# Claudius status pages (host services, see /etc/claudius-*.env STATUS_ADDR).
+# Public via the tunnel at homelab.danielsteman.com/claudius/<name>, behind basic
+# auth. Users live in traefik/claudius.htpasswd (gitignored, server only). The
+# allowlist only admits the proxy network (i.e. cloudflared), so credentials
+# never cross plain http through the router's port 80 forward.
+http:
+  middlewares:
+    claudius-strip:
+      stripPrefixRegex:
+        regex: ["^/claudius/[a-z]+"]
+    claudius-auth:
+      basicAuth:
+        usersFile: /etc/traefik/claudius.htpasswd
+    claudius-tunnel-only:
+      ipAllowList:
+        sourceRange: ["172.19.0.0/16"]
+
+  routers:
+    claudius-maximus:
+      rule: Host(`homelab.danielsteman.com`) && PathPrefix(`/claudius/maximus`)
+      entryPoints: [http]
+      middlewares: [claudius-tunnel-only, claudius-auth, claudius-strip]
+      service: claudius-maximus
+    claudius-secundus:
+      rule: Host(`homelab.danielsteman.com`) && PathPrefix(`/claudius/secundus`)
+      entryPoints: [http]
+      middlewares: [claudius-tunnel-only, claudius-auth, claudius-strip]
+      service: claudius-secundus
+    claudius-tertius:
+      rule: Host(`homelab.danielsteman.com`) && PathPrefix(`/claudius/tertius`)
+      entryPoints: [http]
+      middlewares: [claudius-tunnel-only, claudius-auth, claudius-strip]
+      service: claudius-tertius
+
+  services:
+    claudius-maximus:
+      loadBalancer:
+        servers: [{url: "http://192.168.68.251:9781"}]
+    claudius-secundus:
+      loadBalancer:
+        servers: [{url: "http://192.168.68.251:9782"}]
+    claudius-tertius:
+      loadBalancer:
+        servers: [{url: "http://192.168.68.251:9783"}]
