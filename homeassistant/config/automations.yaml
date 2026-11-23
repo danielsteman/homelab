@@ -277,6 +277,10 @@
     after_offset: -01:00:00
     before: sunrise
     before_offset: +01:00:00
+  - alias: Phone not on focus (do not disturb / sleep)
+    condition: state
+    entity_id: binary_sensor.iphone_van_daniel_focus
+    state: 'off'
   actions:
   - action: light.turn_on
     target:
