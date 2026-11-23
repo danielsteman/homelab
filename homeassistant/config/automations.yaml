@@ -216,7 +216,7 @@
   - trigger: state
     entity_id: binary_sensor.ewelink_snzb_03p_occupancy
     to: 'off'
-    for: 00:02:00
+    for: 00:01:00
     id: room_not_occupied
   conditions: []
   actions:
@@ -256,4 +256,23 @@
           transition: 2
         target:
           area_id: bathroom
+  mode: single
+- id: '1795000000001'
+  alias: Turn on living room lights when arriving home
+  description: Hallway motion shortly after arriving home turns on living room lights
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.hallway_motion_sensor_motion
+    to: 'on'
+  conditions:
+  - condition: state
+    entity_id: person.daniel
+    state: home
+  - alias: Arrived home in the last 10 minutes
+    condition: template
+    value_template: "{{ now() - states.person.daniel.last_changed < timedelta(minutes=10) }}"
+  actions:
+  - action: light.turn_on
+    target:
+      area_id: living_room
   mode: single
