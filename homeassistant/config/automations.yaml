@@ -271,6 +271,12 @@
   - alias: Arrived home in the last 10 minutes
     condition: template
     value_template: "{{ now() - states.person.daniel.last_changed < timedelta(minutes=10) }}"
+  - alias: Dark outside (1h before sunset until 1h after sunrise)
+    condition: sun
+    after: sunset
+    after_offset: -01:00:00
+    before: sunrise
+    before_offset: +01:00:00
   actions:
   - action: light.turn_on
     target:
